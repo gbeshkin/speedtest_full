@@ -15,7 +15,7 @@ from requests.exceptions import ReadTimeout, ConnectionError, Timeout
 URLS = [
     "https://public.websites-dev.eu-central-1.kncloud.aws.int.kn/",
     "https://public.websites-qa.eu-central-1.kncloud.aws.int.kn/",
-    "https://public.websites-prod.eu-central-1.kncloud.aws.int.kn/",
+    "https://www.kuehne-nagel.com",
 ]
 
 API_KEY = os.environ.get("PSI_API_KEY", "")
