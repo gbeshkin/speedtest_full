@@ -1,0 +1,50 @@
+name: PageSpeed Monitor
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/10 * * * *"
+
+concurrency:
+  group: pagespeed-monitor
+  cancel-in-progress: true
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install deps
+        run: pip install --no-cache-dir requests
+
+      - name: Run PageSpeed
+        env:
+          PSI_API_KEY: ${{ secrets.PSI_API_KEY }}
+        run: |
+          python pagespeed.py
+          ls -la reports
+          test -f reports/latest.html
+
+      - name: Publish to Pages (/docs)
+        run: |
+          mkdir -p docs
+          cp reports/latest.html docs/index.html
+          cp reports/latest.html docs/latest.html
+          touch docs/.nojekyll
+          ls -la docs
+
+      - name: Commit & push docs
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add docs reports
+          git diff --staged --quiet || git commit -m "auto: update pagespeed report"
+          git push
