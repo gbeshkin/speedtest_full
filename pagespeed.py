@@ -15,7 +15,7 @@ from requests.exceptions import ReadTimeout, ConnectionError, Timeout
 URLS = [
     "https://public.websites-dev.eu-central-1.kncloud.aws.int.kn/",
     "https://public.websites-qa.eu-central-1.kncloud.aws.int.kn/",
-    "https://www.kuehne-nagel.com",
+    "https://public.websites-prod.eu-central-1.kncloud.aws.int.kn/",
 ]
 
 API_KEY = os.environ.get("PSI_API_KEY", "")
@@ -30,12 +30,12 @@ CHART_POINTS = 864
 # Performance only
 CATEGORIES = ["performance"]
 
-# dots every hour (12 x 5-minute points)
+# Dots every hour (12 x 5-minute points)
 DOT_STEP = 12
 
-# chart settings
+# Chart settings
 CHART_W = 920
-CHART_H = 280
+CHART_H = 260
 CHART_PAD_L = 44
 CHART_PAD_R = 16
 CHART_PAD_T = 18
@@ -56,12 +56,6 @@ def html_escape(value: str) -> str:
         .replace('"', "&quot;")
         .replace("'", "&#39;")
     )
-
-
-def slugify_url(url: str) -> str:
-    value = url.replace("https://", "").replace("http://", "")
-    value = value.strip("/").replace("/", "_").replace(".", "_").replace(":", "_")
-    return value
 
 
 def short_name(url: str) -> str:
@@ -220,167 +214,143 @@ def build_chart(history: List[Dict[str, Any]], urls: List[str]) -> str:
     if len(history) < 2:
         return "<div class='meta'>Not enough history for chart yet. Current points: {}</div>".format(len(history))
 
-    plot_w = CHART_W - CHART_PAD_L - CHART_PAD_R
-    plot_h = CHART_H - CHART_PAD_T - CHART_PAD_B
+    charts = []
 
-    labels: List[str] = []
-    per_url_mobile: Dict[str, List[int]] = {url: [] for url in urls}
-    per_url_desktop: Dict[str, List[int]] = {url: [] for url in urls}
-
-    for item in history:
-        labels.append(item.get("time", item.get("timestamp", "")[11:16]))
-
-        results = item.get("results", [])
-        result_map = {r["url"]: r for r in results if "url" in r}
-
-        for url in urls:
-            result = result_map.get(url)
-            if result and "error" not in result:
-                per_url_mobile[url].append(int(result["mobile"]["performance"]))
-                per_url_desktop[url].append(int(result["desktop"]["performance"]))
-            else:
-                if per_url_mobile[url]:
-                    per_url_mobile[url].append(per_url_mobile[url][-1])
-                    per_url_desktop[url].append(per_url_desktop[url][-1])
-                else:
-                    per_url_mobile[url].append(0)
-                    per_url_desktop[url].append(0)
-
-    all_values: List[int] = []
     for url in urls:
-        all_values.extend(per_url_mobile[url])
-        all_values.extend(per_url_desktop[url])
+        labels: List[str] = []
+        mobile: List[int] = []
+        desktop: List[int] = []
 
-    minv = max(0, min(all_values) - 5)
-    maxv = min(100, max(all_values) + 5)
-    if maxv - minv < 10:
-        minv = max(0, minv - 5)
-        maxv = min(100, maxv + 5)
+        for entry in history:
+            labels.append(entry.get("time", entry.get("timestamp", "")[11:16]))
 
-    n = len(labels)
+            results = entry.get("results", [])
+            result = next((r for r in results if r.get("url") == url), None)
 
-    def x(idx: int) -> float:
-        return CHART_PAD_L + (plot_w * idx / float(n - 1))
+            if result and "error" not in result:
+                mobile.append(int(result["mobile"]["performance"]))
+                desktop.append(int(result["desktop"]["performance"]))
+            else:
+                if mobile:
+                    mobile.append(mobile[-1])
+                    desktop.append(desktop[-1])
+                else:
+                    mobile.append(0)
+                    desktop.append(0)
 
-    def y(value: int) -> float:
-        if maxv == minv:
-            ratio = 0.5
-        else:
-            ratio = (value - minv) / float(maxv - minv)
-        return CHART_PAD_T + (plot_h * (1.0 - ratio))
-
-    def path(series: List[int]) -> str:
-        points = ["{:.2f},{:.2f}".format(x(i), y(v)) for i, v in enumerate(series)]
-        return "M " + " L ".join(points)
-
-    def dots(series: List[int], cls: str) -> str:
-        out = []
-        last_i = len(series) - 1
-        for i, value in enumerate(series):
-            if (i % DOT_STEP != 0) and (i != last_i):
-                continue
-            out.append(
-                "<circle cx='{:.2f}' cy='{:.2f}' r='2.4' class='{}'/>".format(
-                    x(i), y(value), cls
+        n = len(labels)
+        if n < 2:
+            charts.append(
+                "<h2>{}</h2><div class='meta'>Not enough history for this environment yet.</div>".format(
+                    html_escape(short_name(url))
                 )
             )
-        return "".join(out)
-
-    ticks = [minv, int((minv + maxv) / 2), maxv]
-    ygrid = []
-    for tick in ticks:
-        yy = y(tick)
-        ygrid.append(
-            "<line x1='{l}' y1='{y:.2f}' x2='{r}' y2='{y:.2f}' class='svg-grid'/>".format(
-                l=CHART_PAD_L, r=CHART_PAD_L + plot_w, y=yy
-            )
-        )
-        ygrid.append(
-            "<text x='{x}' y='{y:.2f}' text-anchor='end' class='svg-y'>{tick}</text>".format(
-                x=CHART_PAD_L - 8, y=yy + 4, tick=tick
-            )
-        )
-
-    label_step = 24 if n > 200 else 12
-    xlabels = []
-    for i, label in enumerate(labels):
-        if (i % label_step != 0) and (i != n - 1):
             continue
-        xlabels.append(
-            "<text x='{:.2f}' y='{}' text-anchor='middle' class='svg-x'>{}</text>".format(
-                x(i), CHART_PAD_T + plot_h + 32, html_escape(label)
+
+        minv = max(0, min(min(mobile), min(desktop)) - 5)
+        maxv = min(100, max(max(mobile), max(desktop)) + 5)
+
+        if maxv - minv < 10:
+            minv = max(0, minv - 5)
+            maxv = min(100, maxv + 5)
+
+        plot_w = CHART_W - CHART_PAD_L - CHART_PAD_R
+        plot_h = CHART_H - CHART_PAD_T - CHART_PAD_B
+
+        def x(i: int) -> float:
+            return CHART_PAD_L + (plot_w * i / float(n - 1))
+
+        def y(v: int) -> float:
+            ratio = (v - minv) / float(maxv - minv) if maxv != minv else 0.5
+            return CHART_PAD_T + (plot_h * (1.0 - ratio))
+
+        def path(series: List[int]) -> str:
+            pts = ["{:.2f},{:.2f}".format(x(i), y(v)) for i, v in enumerate(series)]
+            return "M " + " L ".join(pts)
+
+        def dots(series: List[int], cls: str) -> str:
+            out = []
+            last_i = len(series) - 1
+            for i, v in enumerate(series):
+                if (i % DOT_STEP != 0) and (i != last_i):
+                    continue
+                out.append(
+                    "<circle cx='{:.2f}' cy='{:.2f}' r='2.6' class='{}'/>".format(
+                        x(i), y(v), cls
+                    )
+                )
+            return "".join(out)
+
+        ticks = [minv, int((minv + maxv) / 2), maxv]
+        ygrid = []
+        for tick in ticks:
+            yy = y(tick)
+            ygrid.append(
+                "<line x1='{l}' y1='{y:.2f}' x2='{r}' y2='{y:.2f}' class='svg-grid'/>".format(
+                    l=CHART_PAD_L, r=CHART_PAD_L + plot_w, y=yy
+                )
             )
-        )
-
-    series_colors = [
-        ("s1", "s1d"),
-        ("s2", "s2d"),
-        ("s3", "s3d"),
-    ]
-
-    legend_parts = []
-    series_parts = []
-
-    for idx, url in enumerate(urls):
-        mobile = per_url_mobile[url]
-        desktop = per_url_desktop[url]
-        mobile_cls, desktop_cls = series_colors[idx % len(series_colors)]
-
-        legend_parts.append(
-            """
-            <div class="legend-row">
-              <span class="sw {mcls}"></span><span>{name} Mobile: <b>{mv}</b></span>
-              <span class="sw {dcls}"></span><span>{name} Desktop: <b>{dv}</b></span>
-            </div>
-            """.format(
-                mcls=mobile_cls,
-                dcls=desktop_cls,
-                name=html_escape(short_name(url)),
-                mv=mobile[-1],
-                dv=desktop[-1],
+            ygrid.append(
+                "<text x='{x}' y='{y:.2f}' text-anchor='end' class='svg-y'>{tick}</text>".format(
+                    x=CHART_PAD_L - 8, y=yy + 4, tick=tick
+                )
             )
-        )
 
-        series_parts.append(
-            """
-            <path d="{mpath}" class="svg-line {mcls}"/>
-            <path d="{dpath}" class="svg-line dashed {dcls}"/>
+        label_step = 24 if n > 200 else 12
+        xlabels = []
+        for i, label in enumerate(labels):
+            if (i % label_step != 0) and (i != n - 1):
+                continue
+            xlabels.append(
+                "<text x='{:.2f}' y='{}' text-anchor='middle' class='svg-x'>{}</text>".format(
+                    x(i), CHART_PAD_T + plot_h + 32, html_escape(label)
+                )
+            )
+
+        chart = """
+        <div class="env-chart">
+          <h2>{env}</h2>
+          <div class="legend">
+            <span class="leg"><span class="sw sw-m"></span> Mobile: <b>{m_last}</b></span>
+            <span class="leg"><span class="sw sw-d"></span> Desktop: <b>{d_last}</b></span>
+          </div>
+
+          <svg width="{w}" height="{h}" viewBox="0 0 {w} {h}">
+            <rect x="0" y="0" width="{w}" height="{h}" rx="16" class="svg-bg"/>
+            {ygrid}
+            <line x1="{l}" y1="{t}" x2="{l}" y2="{b}" class="svg-axis"/>
+            <line x1="{l}" y1="{b}" x2="{r}" y2="{b}" class="svg-axis"/>
+
+            <path d="{mp}" class="svg-line-m"/>
+            <path d="{dp}" class="svg-line-d"/>
+
             {mdots}
             {ddots}
-            """.format(
-                mpath=path(mobile),
-                dpath=path(desktop),
-                mcls=mobile_cls,
-                dcls=desktop_cls,
-                mdots=dots(mobile, "svg-dot {}".format(mobile_cls)),
-                ddots=dots(desktop, "svg-dot {}".format(desktop_cls)),
-            )
+
+            {xlabels}
+          </svg>
+        </div>
+        """.format(
+            env=html_escape(short_name(url)),
+            m_last=mobile[-1],
+            d_last=desktop[-1],
+            w=CHART_W,
+            h=CHART_H,
+            ygrid="".join(ygrid),
+            l=CHART_PAD_L,
+            r=CHART_PAD_L + plot_w,
+            t=CHART_PAD_T,
+            b=CHART_PAD_T + plot_h,
+            mp=path(mobile),
+            dp=path(desktop),
+            mdots=dots(mobile, "svg-dot-m"),
+            ddots=dots(desktop, "svg-dot-d"),
+            xlabels="".join(xlabels),
         )
 
-    return """
-    <div class="legend">
-      {legend}
-    </div>
-    <svg width="{w}" height="{h}" viewBox="0 0 {w} {h}">
-      <rect x="0" y="0" width="{w}" height="{h}" rx="16" class="svg-bg"/>
-      {ygrid}
-      <line x1="{l}" y1="{t}" x2="{l}" y2="{b}" class="svg-axis"/>
-      <line x1="{l}" y1="{b}" x2="{r}" y2="{b}" class="svg-axis"/>
-      {series}
-      {xlabels}
-    </svg>
-    """.format(
-        legend="".join(legend_parts),
-        w=CHART_W,
-        h=CHART_H,
-        ygrid="".join(ygrid),
-        l=CHART_PAD_L,
-        r=CHART_PAD_L + plot_w,
-        t=CHART_PAD_T,
-        b=CHART_PAD_T + plot_h,
-        series="".join(series_parts),
-        xlabels="".join(xlabels),
-    )
+        charts.append(chart)
+
+    return "".join(charts)
 
 
 def build_html(run_label: str, results: List[Dict[str, Any]], history: List[Dict[str, Any]]) -> str:
@@ -434,24 +404,23 @@ def build_html(run_label: str, results: List[Dict[str, Any]], history: List[Dict
     .err {{ color:#b00020; font-weight:700; margin-top:8px; }}
 
     .chart {{ margin-top:26px; }}
-    .legend {{ display:flex; flex-direction:column; gap:6px; margin:10px 0 8px; color:#444; }}
-    .legend-row {{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }}
+    .env-chart {{ margin-top:24px; }}
+    .legend {{ display:flex; gap:14px; flex-wrap:wrap; margin:10px 0 8px; color:#444; }}
+    .leg {{ display:flex; align-items:center; gap:8px; }}
     .sw {{ display:inline-block; width:14px; height:4px; border-radius:999px; }}
+
     .svg-bg {{ fill:#fafafa; stroke:#e8e8e8; }}
     .svg-grid {{ stroke:#e9e9e9; stroke-width:1; }}
     .svg-axis {{ stroke:#d7d7d7; stroke-width:1.2; }}
-    .svg-line {{ fill:none; stroke-width:2.2; }}
-    .svg-line.dashed {{ stroke-dasharray:6 5; opacity:.75; }}
-    .svg-dot {{ opacity:.9; }}
+    .svg-line-m {{ fill:none; stroke:#111; stroke-width:2.4; }}
+    .svg-line-d {{ fill:none; stroke:#2563eb; stroke-width:2.4; stroke-dasharray:6 5; }}
+    .svg-dot-m {{ fill:#111; }}
+    .svg-dot-d {{ fill:#2563eb; }}
     .svg-x {{ font-size:11px; fill:#666; }}
     .svg-y {{ font-size:11px; fill:#666; }}
 
-    .s1 {{ stroke:#111; fill:#111; background:#111; }}
-    .s1d {{ stroke:#111; fill:#111; background:#111; opacity:.55; }}
-    .s2 {{ stroke:#2563eb; fill:#2563eb; background:#2563eb; }}
-    .s2d {{ stroke:#2563eb; fill:#2563eb; background:#2563eb; opacity:.55; }}
-    .s3 {{ stroke:#059669; fill:#059669; background:#059669; }}
-    .s3d {{ stroke:#059669; fill:#059669; background:#059669; opacity:.55; }}
+    .sw-m {{ background:#111; }}
+    .sw-d {{ background:#2563eb; }}
   </style>
 </head>
 <body>
