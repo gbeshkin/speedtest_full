@@ -14,48 +14,47 @@
     .err { color:#b00020; font-weight:700; margin-top:8px; }
 
     .chart { margin-top:26px; }
-    .legend { display:flex; flex-direction:column; gap:6px; margin:10px 0 8px; color:#444; }
-    .legend-row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .env-chart { margin-top:24px; }
+    .legend { display:flex; gap:14px; flex-wrap:wrap; margin:10px 0 8px; color:#444; }
+    .leg { display:flex; align-items:center; gap:8px; }
     .sw { display:inline-block; width:14px; height:4px; border-radius:999px; }
+
     .svg-bg { fill:#fafafa; stroke:#e8e8e8; }
     .svg-grid { stroke:#e9e9e9; stroke-width:1; }
     .svg-axis { stroke:#d7d7d7; stroke-width:1.2; }
-    .svg-line { fill:none; stroke-width:2.2; }
-    .svg-line.dashed { stroke-dasharray:6 5; opacity:.75; }
-    .svg-dot { opacity:.9; }
+    .svg-line-m { fill:none; stroke:#111; stroke-width:2.4; }
+    .svg-line-d { fill:none; stroke:#2563eb; stroke-width:2.4; stroke-dasharray:6 5; }
+    .svg-dot-m { fill:#111; }
+    .svg-dot-d { fill:#2563eb; }
     .svg-x { font-size:11px; fill:#666; }
     .svg-y { font-size:11px; fill:#666; }
 
-    .s1 { stroke:#111; fill:#111; background:#111; }
-    .s1d { stroke:#111; fill:#111; background:#111; opacity:.55; }
-    .s2 { stroke:#2563eb; fill:#2563eb; background:#2563eb; }
-    .s2d { stroke:#2563eb; fill:#2563eb; background:#2563eb; opacity:.55; }
-    .s3 { stroke:#059669; fill:#059669; background:#059669; }
-    .s3d { stroke:#059669; fill:#059669; background:#059669; opacity:.55; }
+    .sw-m { background:#111; }
+    .sw-d { background:#2563eb; }
   </style>
 </head>
 <body>
   <h1 style="margin:0;">PageSpeed — Performance (5 min)</h1>
-  <div class="meta"><b>Run:</b> 2026-03-09 11:32 +0000 · <b>URLs:</b> 3 · <b>History points:</b> 3</div>
+  <div class="meta"><b>Run:</b> 2026-03-09 11:50 +0000 · <b>URLs:</b> 3 · <b>History points:</b> 4</div>
 
   <div class="row">
     
                 <div class="card">
                   <div class="k">DEV</div>
                   <div class="small">https://public.websites-dev.eu-central-1.kncloud.aws.int.kn/</div>
-                  <div class="v">M 67 / D 98</div>
+                  <div class="v">M 79 / D 98</div>
                 </div>
                 
                 <div class="card">
                   <div class="k">QA</div>
                   <div class="small">https://public.websites-qa.eu-central-1.kncloud.aws.int.kn/</div>
-                  <div class="v">M 48 / D 45</div>
+                  <div class="v">M 46 / D 74</div>
                 </div>
                 
                 <div class="card">
-                  <div class="k">https://www.kuehne-nagel.com</div>
-                  <div class="small">https://www.kuehne-nagel.com</div>
-                  <div class="v">M 48 / D 57</div>
+                  <div class="k">PROD</div>
+                  <div class="err">Error</div>
+                  <div class="small">[mobile][https://public.websites-prod.eu-central-1.kncloud.aws.int.kn/] PSI error 400: {&#39;error&#39;: {&#39;code&#39;: 400, &#39;message&#39;: &#39;Lighthouse returned error: FAILED_DOCUMENT_REQUEST. Lighthouse was unable to reliably load the page you requested. Make sure you are testing the correct URL and that the server is properly responding to all requests. (Details: net::ERR_CONNECTION_FAILED)&#39;, &#39;errors&#39;: [{&#39;message&#39;: &#39;Lighthouse returned error: FAILED_DOCUMENT_REQUEST. Lighthouse was unable to reliably load the page you requested. Make sure you are testing the correct URL and that the server is properly responding to all requests. (Details: net::ERR_CONNECTION_FAILED)&#39;, &#39;domain&#39;: &#39;lighthouse&#39;, &#39;reason&#39;: &#39;lighthouseUserError&#39;}]}}</div>
                 </div>
                 
   </div>
@@ -63,48 +62,75 @@
   <div class="chart">
     <h2>3-day trend (all runs)</h2>
     
-    <div class="legend">
-      
-            <div class="legend-row">
-              <span class="sw s1"></span><span>DEV Mobile: <b>67</b></span>
-              <span class="sw s1d"></span><span>DEV Desktop: <b>98</b></span>
-            </div>
-            
-            <div class="legend-row">
-              <span class="sw s2"></span><span>QA Mobile: <b>48</b></span>
-              <span class="sw s2d"></span><span>QA Desktop: <b>45</b></span>
-            </div>
-            
-            <div class="legend-row">
-              <span class="sw s3"></span><span>https://www.kuehne-nagel.com Mobile: <b>48</b></span>
-              <span class="sw s3d"></span><span>https://www.kuehne-nagel.com Desktop: <b>57</b></span>
-            </div>
-            
-    </div>
-    <svg width="920" height="280" viewBox="0 0 920 280">
-      <rect x="0" y="0" width="920" height="280" rx="16" class="svg-bg"/>
-      <line x1='44' y1='224.00' x2='904' y2='224.00' class='svg-grid'/><text x='36' y='228.00' text-anchor='end' class='svg-y'>0</text><line x1='44' y1='121.00' x2='904' y2='121.00' class='svg-grid'/><text x='36' y='125.00' text-anchor='end' class='svg-y'>50</text><line x1='44' y1='18.00' x2='904' y2='18.00' class='svg-grid'/><text x='36' y='22.00' text-anchor='end' class='svg-y'>100</text>
-      <line x1="44" y1="18" x2="44" y2="224" class="svg-axis"/>
-      <line x1="44" y1="224" x2="904" y2="224" class="svg-axis"/>
-      
-            <path d="M 44.00,67.44 L 474.00,79.80 L 904.00,85.98" class="svg-line s1"/>
-            <path d="M 44.00,55.08 L 474.00,34.48 L 904.00,22.12" class="svg-line dashed s1d"/>
-            <circle cx='44.00' cy='67.44' r='2.4' class='svg-dot s1'/><circle cx='904.00' cy='85.98' r='2.4' class='svg-dot s1'/>
-            <circle cx='44.00' cy='55.08' r='2.4' class='svg-dot s1d'/><circle cx='904.00' cy='22.12' r='2.4' class='svg-dot s1d'/>
-            
-            <path d="M 44.00,137.48 L 474.00,147.78 L 904.00,125.12" class="svg-line s2"/>
-            <path d="M 44.00,81.86 L 474.00,67.44 L 904.00,131.30" class="svg-line dashed s2d"/>
-            <circle cx='44.00' cy='137.48' r='2.4' class='svg-dot s2'/><circle cx='904.00' cy='125.12' r='2.4' class='svg-dot s2'/>
-            <circle cx='44.00' cy='81.86' r='2.4' class='svg-dot s2d'/><circle cx='904.00' cy='131.30' r='2.4' class='svg-dot s2d'/>
-            
-            <path d="M 44.00,224.00 L 474.00,137.48 L 904.00,125.12" class="svg-line s3"/>
-            <path d="M 44.00,224.00 L 474.00,92.16 L 904.00,106.58" class="svg-line dashed s3d"/>
-            <circle cx='44.00' cy='224.00' r='2.4' class='svg-dot s3'/><circle cx='904.00' cy='125.12' r='2.4' class='svg-dot s3'/>
-            <circle cx='44.00' cy='224.00' r='2.4' class='svg-dot s3d'/><circle cx='904.00' cy='106.58' r='2.4' class='svg-dot s3d'/>
-            
-      <text x='44.00' y='256' text-anchor='middle' class='svg-x'>11:05</text><text x='904.00' y='256' text-anchor='middle' class='svg-x'>11:32</text>
-    </svg>
-    
+        <div class="env-chart">
+          <h2>DEV</h2>
+          <div class="legend">
+            <span class="leg"><span class="sw sw-m"></span> Mobile: <b>79</b></span>
+            <span class="leg"><span class="sw sw-d"></span> Desktop: <b>98</b></span>
+          </div>
+
+          <svg width="920" height="260" viewBox="0 0 920 260">
+            <rect x="0" y="0" width="920" height="260" rx="16" class="svg-bg"/>
+            <line x1='44' y1='204.00' x2='904' y2='204.00' class='svg-grid'/><text x='36' y='208.00' text-anchor='end' class='svg-y'>62</text><line x1='44' y1='111.00' x2='904' y2='111.00' class='svg-grid'/><text x='36' y='115.00' text-anchor='end' class='svg-y'>81</text><line x1='44' y1='18.00' x2='904' y2='18.00' class='svg-grid'/><text x='36' y='22.00' text-anchor='end' class='svg-y'>100</text>
+            <line x1="44" y1="18" x2="44" y2="204" class="svg-axis"/>
+            <line x1="44" y1="204" x2="904" y2="204" class="svg-axis"/>
+
+            <path d="M 44.00,135.47 L 330.67,164.84 L 617.33,179.53 L 904.00,120.79" class="svg-line-m"/>
+            <path d="M 44.00,106.11 L 330.67,57.16 L 617.33,27.79 L 904.00,27.79" class="svg-line-d"/>
+
+            <circle cx='44.00' cy='135.47' r='2.6' class='svg-dot-m'/><circle cx='904.00' cy='120.79' r='2.6' class='svg-dot-m'/>
+            <circle cx='44.00' cy='106.11' r='2.6' class='svg-dot-d'/><circle cx='904.00' cy='27.79' r='2.6' class='svg-dot-d'/>
+
+            <text x='44.00' y='236' text-anchor='middle' class='svg-x'>11:05</text><text x='904.00' y='236' text-anchor='middle' class='svg-x'>11:50</text>
+          </svg>
+        </div>
+        
+        <div class="env-chart">
+          <h2>QA</h2>
+          <div class="legend">
+            <span class="leg"><span class="sw sw-m"></span> Mobile: <b>46</b></span>
+            <span class="leg"><span class="sw sw-d"></span> Desktop: <b>74</b></span>
+          </div>
+
+          <svg width="920" height="260" viewBox="0 0 920 260">
+            <rect x="0" y="0" width="920" height="260" rx="16" class="svg-bg"/>
+            <line x1='44' y1='204.00' x2='904' y2='204.00' class='svg-grid'/><text x='36' y='208.00' text-anchor='end' class='svg-y'>32</text><line x1='44' y1='112.90' x2='904' y2='112.90' class='svg-grid'/><text x='36' y='116.90' text-anchor='end' class='svg-y'>56</text><line x1='44' y1='18.00' x2='904' y2='18.00' class='svg-grid'/><text x='36' y='22.00' text-anchor='end' class='svg-y'>81</text>
+            <line x1="44" y1="18" x2="44" y2="204" class="svg-axis"/>
+            <line x1="44" y1="204" x2="904" y2="204" class="svg-axis"/>
+
+            <path d="M 44.00,166.04 L 330.67,185.02 L 617.33,143.27 L 904.00,150.86" class="svg-line-m"/>
+            <path d="M 44.00,63.55 L 330.67,36.98 L 617.33,154.65 L 904.00,44.57" class="svg-line-d"/>
+
+            <circle cx='44.00' cy='166.04' r='2.6' class='svg-dot-m'/><circle cx='904.00' cy='150.86' r='2.6' class='svg-dot-m'/>
+            <circle cx='44.00' cy='63.55' r='2.6' class='svg-dot-d'/><circle cx='904.00' cy='44.57' r='2.6' class='svg-dot-d'/>
+
+            <text x='44.00' y='236' text-anchor='middle' class='svg-x'>11:05</text><text x='904.00' y='236' text-anchor='middle' class='svg-x'>11:50</text>
+          </svg>
+        </div>
+        
+        <div class="env-chart">
+          <h2>PROD</h2>
+          <div class="legend">
+            <span class="leg"><span class="sw sw-m"></span> Mobile: <b>0</b></span>
+            <span class="leg"><span class="sw sw-d"></span> Desktop: <b>0</b></span>
+          </div>
+
+          <svg width="920" height="260" viewBox="0 0 920 260">
+            <rect x="0" y="0" width="920" height="260" rx="16" class="svg-bg"/>
+            <line x1='44' y1='204.00' x2='904' y2='204.00' class='svg-grid'/><text x='36' y='208.00' text-anchor='end' class='svg-y'>0</text><line x1='44' y1='111.00' x2='904' y2='111.00' class='svg-grid'/><text x='36' y='115.00' text-anchor='end' class='svg-y'>5</text><line x1='44' y1='18.00' x2='904' y2='18.00' class='svg-grid'/><text x='36' y='22.00' text-anchor='end' class='svg-y'>10</text>
+            <line x1="44" y1="18" x2="44" y2="204" class="svg-axis"/>
+            <line x1="44" y1="204" x2="904" y2="204" class="svg-axis"/>
+
+            <path d="M 44.00,204.00 L 330.67,204.00 L 617.33,204.00 L 904.00,204.00" class="svg-line-m"/>
+            <path d="M 44.00,204.00 L 330.67,204.00 L 617.33,204.00 L 904.00,204.00" class="svg-line-d"/>
+
+            <circle cx='44.00' cy='204.00' r='2.6' class='svg-dot-m'/><circle cx='904.00' cy='204.00' r='2.6' class='svg-dot-m'/>
+            <circle cx='44.00' cy='204.00' r='2.6' class='svg-dot-d'/><circle cx='904.00' cy='204.00' r='2.6' class='svg-dot-d'/>
+
+            <text x='44.00' y='236' text-anchor='middle' class='svg-x'>11:05</text><text x='904.00' y='236' text-anchor='middle' class='svg-x'>11:50</text>
+          </svg>
+        </div>
+        
   </div>
 
   <p class="meta">Full daily report: <a href="full.html">full.html</a></p>
