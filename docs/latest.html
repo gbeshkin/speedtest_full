@@ -1,1 +1,70 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>PageSpeed — Performance</title>
+  <style>
+    body { font-family: -apple-system, Segoe UI, Roboto, Arial; margin: 26px; }
+    .meta { color:#555; margin-top:6px; }
+    .row { display:flex; gap:12px; flex-wrap:wrap; margin-top:14px; }
+    .card { border:1px solid #eee; border-radius:16px; padding:14px; min-width:280px; flex:1; }
+    .k { color:#666; font-size:12px; font-weight:700; }
+    .v { font-size:28px; font-weight:800; margin-top:8px; }
+    .small { color:#666; font-size:13px; margin-top:8px; word-break:break-all; }
+    .err { color:#b00020; font-weight:700; margin-top:8px; }
 
+    .chart { margin-top:26px; }
+    .legend { display:flex; flex-direction:column; gap:6px; margin:10px 0 8px; color:#444; }
+    .legend-row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .sw { display:inline-block; width:14px; height:4px; border-radius:999px; }
+    .svg-bg { fill:#fafafa; stroke:#e8e8e8; }
+    .svg-grid { stroke:#e9e9e9; stroke-width:1; }
+    .svg-axis { stroke:#d7d7d7; stroke-width:1.2; }
+    .svg-line { fill:none; stroke-width:2.2; }
+    .svg-line.dashed { stroke-dasharray:6 5; opacity:.75; }
+    .svg-dot { opacity:.9; }
+    .svg-x { font-size:11px; fill:#666; }
+    .svg-y { font-size:11px; fill:#666; }
+
+    .s1 { stroke:#111; fill:#111; background:#111; }
+    .s1d { stroke:#111; fill:#111; background:#111; opacity:.55; }
+    .s2 { stroke:#2563eb; fill:#2563eb; background:#2563eb; }
+    .s2d { stroke:#2563eb; fill:#2563eb; background:#2563eb; opacity:.55; }
+    .s3 { stroke:#059669; fill:#059669; background:#059669; }
+    .s3d { stroke:#059669; fill:#059669; background:#059669; opacity:.55; }
+  </style>
+</head>
+<body>
+  <h1 style="margin:0;">PageSpeed — Performance (5 min)</h1>
+  <div class="meta"><b>Run:</b> 2026-03-09 11:05 +0000 · <b>URLs:</b> 3 · <b>History points:</b> 1</div>
+
+  <div class="row">
+    
+                <div class="card">
+                  <div class="k">DEV</div>
+                  <div class="small">https://public.websites-dev.eu-central-1.kncloud.aws.int.kn/</div>
+                  <div class="v">M 76 / D 82</div>
+                </div>
+                
+                <div class="card">
+                  <div class="k">QA</div>
+                  <div class="small">https://public.websites-qa.eu-central-1.kncloud.aws.int.kn/</div>
+                  <div class="v">M 42 / D 69</div>
+                </div>
+                
+                <div class="card">
+                  <div class="k">PROD</div>
+                  <div class="err">Error</div>
+                  <div class="small">[mobile][https://public.websites-prod.eu-central-1.kncloud.aws.int.kn/] PSI error 400: {&#39;error&#39;: {&#39;code&#39;: 400, &#39;message&#39;: &#39;Lighthouse returned error: FAILED_DOCUMENT_REQUEST. Lighthouse was unable to reliably load the page you requested. Make sure you are testing the correct URL and that the server is properly responding to all requests. (Details: net::ERR_CONNECTION_FAILED)&#39;, &#39;errors&#39;: [{&#39;message&#39;: &#39;Lighthouse returned error: FAILED_DOCUMENT_REQUEST. Lighthouse was unable to reliably load the page you requested. Make sure you are testing the correct URL and that the server is properly responding to all requests. (Details: net::ERR_CONNECTION_FAILED)&#39;, &#39;domain&#39;: &#39;lighthouse&#39;, &#39;reason&#39;: &#39;lighthouseUserError&#39;}]}}</div>
+                </div>
+                
+  </div>
+
+  <div class="chart">
+    <h2>3-day trend (all runs)</h2>
+    <div class='meta'>Not enough history for chart yet. Current points: 1</div>
+  </div>
+
+  <p class="meta">Full daily report: <a href="full.html">full.html</a></p>
+</body>
+</html>
