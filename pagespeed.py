@@ -6,7 +6,7 @@ import datetime as dt
 from typing import Dict, Any, List
 
 import requests
-from requests.exceptions import ReadTimeout, ConnectionError, Timeout
+from requests.exceptions import ReadTimeout, ConnectionError, Timeout, RequestException
 
 # =========================
 # CONFIG
@@ -27,6 +27,8 @@ HISTORY_FILE = os.path.join(OUT_DIR, "history.jsonl")
 # 3 days history if job runs every 5 minutes
 CHART_POINTS = 864
 HISTORY_DAYS = 3
+RETENTION_DAYS = 30
+RETENTION_POINTS = 8640
 
 # Performance only
 CATEGORIES = ["performance"]
@@ -43,6 +45,7 @@ CHART_PAD_T = 18
 CHART_PAD_B = 56
 
 SESSION = requests.Session()
+HEALTH_TIMEOUT = (5, 20)
 
 
 # =========================
@@ -74,6 +77,37 @@ def short_name(url: str) -> str:
 # =========================
 # PSI REQUEST
 # =========================
+
+def check_url_health(url: str) -> Dict[str, Any]:
+    started = time.monotonic()
+
+    try:
+        response = SESSION.get(
+            url,
+            allow_redirects=True,
+            headers={"User-Agent": "PageSpeed-Monitor/1.0"},
+            stream=True,
+            timeout=HEALTH_TIMEOUT,
+        )
+        latency_ms = int(round((time.monotonic() - started) * 1000))
+        status = response.status_code
+        response.close()
+
+        return {
+            "ok": 200 <= status < 500,
+            "status": status,
+            "latency_ms": latency_ms,
+            "error": None,
+        }
+    except RequestException as exc:
+        latency_ms = int(round((time.monotonic() - started) * 1000))
+        return {
+            "ok": False,
+            "status": None,
+            "latency_ms": latency_ms,
+            "error": str(exc),
+        }
+
 
 def fetch(url: str, strategy: str, max_attempts: int = 10) -> Dict[str, Any]:
     params = {
@@ -230,6 +264,10 @@ def average_scores(history: List[Dict[str, Any]], urls: List[str]) -> Dict[str, 
         desktop: List[int] = []
         errors = 0
         total = 0
+        health_total = 0
+        health_ok = 0
+        http_504 = 0
+        last_504 = ""
 
         for entry in history:
             result = next(
@@ -242,6 +280,16 @@ def average_scores(history: List[Dict[str, Any]], urls: List[str]) -> Dict[str, 
             )
             if not result:
                 continue
+
+            health = result.get("health")
+            if health:
+                health_total += 1
+                status = health.get("status")
+                if health.get("ok"):
+                    health_ok += 1
+                if status == 504:
+                    http_504 += 1
+                    last_504 = entry.get("timestamp", "")
 
             total += 1
             if "error" in result:
@@ -259,6 +307,11 @@ def average_scores(history: List[Dict[str, Any]], urls: List[str]) -> Dict[str, 
             "total": total,
             "error_rate": int(round((errors / float(total)) * 100)),
             "points": min(len(mobile), len(desktop)),
+            "health_total": health_total,
+            "health_ok": health_ok,
+            "availability": int(round((health_ok / float(health_total)) * 100)) if health_total else 0,
+            "http_504": http_504,
+            "last_504": last_504,
         }
 
         if mobile and desktop:
@@ -458,6 +511,18 @@ def build_html(run_label: str, results: List[Dict[str, Any]], history: List[Dict
             errors = avg["errors"] if avg else 0
             total = avg["total"] if avg else 1
             error_rate = avg["error_rate"] if avg else 0
+            health_total = avg["health_total"] if avg else 0
+            health_line = "Health checks: no data yet"
+            if health_total:
+                last_504 = avg["last_504"][5:16].replace("T", " ") if avg["last_504"] else "—"
+                health_line = (
+                    "Availability: {availability}% · HTTP 504: {http_504}/{health_total} · Last 504: {last_504}"
+                ).format(
+                    availability=avg["availability"],
+                    http_504=avg["http_504"],
+                    health_total=health_total,
+                    last_504=last_504,
+                )
             cards.append(
                 """
                 <div class="card">
@@ -466,6 +531,7 @@ def build_html(run_label: str, results: List[Dict[str, Any]], history: List[Dict
                   <div class="v">Avg M {m} / Avg D {d}</div>
                   <div class="small">3-day average · {points} points</div>
                   <div class="small">Error rate: {error_rate}% · {errors}/{total} runs</div>
+                  <div class="small">{health_line}</div>
                 </div>
                 """.format(
                     name=html_escape(short_name(item["url"])),
@@ -476,6 +542,7 @@ def build_html(run_label: str, results: List[Dict[str, Any]], history: List[Dict
                     error_rate=error_rate,
                     errors=errors,
                     total=total,
+                    health_line=html_escape(health_line),
                 )
             )
 
@@ -563,6 +630,17 @@ def format_error_rate(errors: int, total: int) -> str:
     )
 
 
+def format_availability(ok_count: int, total: int) -> str:
+    if total == 0:
+        return "—"
+
+    return "{rate}% ({ok}/{total})".format(
+        rate=int(round((ok_count / float(total)) * 100)),
+        ok=ok_count,
+        total=total,
+    )
+
+
 def build_full_html(run_label: str, history: List[Dict[str, Any]], urls: List[str]) -> str:
     by_day: Dict[str, Dict[str, Dict[str, Any]]] = {}
 
@@ -578,9 +656,27 @@ def build_full_html(run_label: str, history: List[Dict[str, Any]], urls: List[st
             url = result.get("url", "")
             url_data = day_data.setdefault(
                 url,
-                {"mobile": [], "desktop": [], "errors": 0, "total": 0},
+                {
+                    "mobile": [],
+                    "desktop": [],
+                    "errors": 0,
+                    "total": 0,
+                    "health_total": 0,
+                    "health_ok": 0,
+                    "http_504": 0,
+                    "last_504": "",
+                },
             )
             url_data["total"] += 1
+
+            health = result.get("health")
+            if health:
+                url_data["health_total"] += 1
+                if health.get("ok"):
+                    url_data["health_ok"] += 1
+                if health.get("status") == 504:
+                    url_data["http_504"] += 1
+                    url_data["last_504"] = entry.get("timestamp", "")
 
             if "error" in result:
                 url_data["errors"] += 1
@@ -596,8 +692,18 @@ def build_full_html(run_label: str, history: List[Dict[str, Any]], urls: List[st
         for url in urls:
             values = by_day[day].get(
                 url,
-                {"mobile": [], "desktop": [], "errors": 0, "total": 0},
+                {
+                    "mobile": [],
+                    "desktop": [],
+                    "errors": 0,
+                    "total": 0,
+                    "health_total": 0,
+                    "health_ok": 0,
+                    "http_504": 0,
+                    "last_504": "",
+                },
             )
+            last_504 = values["last_504"][11:16] if values["last_504"] else "—"
             rows.append(
                 """
                 <tr>
@@ -605,6 +711,9 @@ def build_full_html(run_label: str, history: List[Dict[str, Any]], urls: List[st
                   <td>{success}</td>
                   <td>{errors}</td>
                   <td>{error_rate}</td>
+                  <td>{availability}</td>
+                  <td>{http_504}</td>
+                  <td>{last_504}</td>
                   <td>{mobile}</td>
                   <td>{desktop}</td>
                 </tr>
@@ -613,6 +722,12 @@ def build_full_html(run_label: str, history: List[Dict[str, Any]], urls: List[st
                     success=max(len(values["mobile"]), len(values["desktop"])),
                     errors=values["errors"],
                     error_rate=format_error_rate(values["errors"], values["total"]),
+                    availability=format_availability(values["health_ok"], values["health_total"]),
+                    http_504="{count}/{total}".format(
+                        count=values["http_504"],
+                        total=values["health_total"],
+                    ) if values["health_total"] else "—",
+                    last_504=html_escape(last_504),
                     mobile=score_stats(values["mobile"]),
                     desktop=score_stats(values["desktop"]),
                 )
@@ -629,6 +744,9 @@ def build_full_html(run_label: str, history: List[Dict[str, Any]], urls: List[st
                     <th>Success runs</th>
                     <th>Error runs</th>
                     <th>Error rate</th>
+                    <th>Availability</th>
+                    <th>HTTP 504</th>
+                    <th>Last 504</th>
                     <th>Mobile avg / min / max</th>
                     <th>Desktop avg / min / max</th>
                   </tr>
@@ -684,6 +802,15 @@ def main() -> None:
 
     for url in URLS:
         print("Fetching PageSpeed for:", url)
+        health = check_url_health(url)
+        print(
+            "Health check:",
+            url,
+            "status=",
+            health.get("status"),
+            "latency_ms=",
+            health.get("latency_ms"),
+        )
 
         try:
             mobile_raw = fetch(url, "mobile")
@@ -695,6 +822,7 @@ def main() -> None:
                     "timestamp": now.isoformat(timespec="minutes"),
                     "time": now.strftime("%H:%M"),
                     "url": url,
+                    "health": health,
                     "mobile": {"performance": lh_score(mobile_raw, "performance")},
                     "desktop": {"performance": lh_score(desktop_raw, "performance")},
                 }
@@ -705,6 +833,7 @@ def main() -> None:
                     "timestamp": now.isoformat(timespec="minutes"),
                     "time": now.strftime("%H:%M"),
                     "url": url,
+                    "health": health,
                     "error": str(exc),
                 }
             )
@@ -716,12 +845,13 @@ def main() -> None:
     }
 
     append_jsonl(HISTORY_FILE, history_entry)
-    history = filter_recent_history(
-        tail_jsonl(HISTORY_FILE, CHART_POINTS * 4),
+    retained_history = filter_recent_history(
+        tail_jsonl(HISTORY_FILE, RETENTION_POINTS * 2),
         now,
-        HISTORY_DAYS,
+        RETENTION_DAYS,
     )
-    rewrite_history(HISTORY_FILE, history)
+    rewrite_history(HISTORY_FILE, retained_history)
+    history = filter_recent_history(retained_history, now, HISTORY_DAYS)
 
     if all("error" in item for item in all_results):
         html = build_error_html(
