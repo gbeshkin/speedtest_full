@@ -228,28 +228,42 @@ def average_scores(history: List[Dict[str, Any]], urls: List[str]) -> Dict[str, 
     for url in urls:
         mobile: List[int] = []
         desktop: List[int] = []
+        errors = 0
+        total = 0
 
         for entry in history:
             result = next(
                 (
                     item
                     for item in entry.get("results", [])
-                    if item.get("url") == url and "error" not in item
+                    if item.get("url") == url
                 ),
                 None,
             )
             if not result:
                 continue
 
+            total += 1
+            if "error" in result:
+                errors += 1
+                continue
+
             mobile.append(int(result["mobile"]["performance"]))
             desktop.append(int(result["desktop"]["performance"]))
 
+        if not total:
+            continue
+
+        averages[url] = {
+            "errors": errors,
+            "total": total,
+            "error_rate": int(round((errors / float(total)) * 100)),
+            "points": min(len(mobile), len(desktop)),
+        }
+
         if mobile and desktop:
-            averages[url] = {
-                "mobile": int(round(sum(mobile) / float(len(mobile)))),
-                "desktop": int(round(sum(desktop) / float(len(desktop)))),
-                "points": min(len(mobile), len(desktop)),
-            }
+            averages[url]["mobile"] = int(round(sum(mobile) / float(len(mobile))))
+            averages[url]["desktop"] = int(round(sum(desktop) / float(len(desktop))))
 
     return averages
 
@@ -438,9 +452,12 @@ def build_html(run_label: str, results: List[Dict[str, Any]], history: List[Dict
                 )
             )
         else:
-            mobile_score = avg["mobile"] if avg else item["mobile"]["performance"]
-            desktop_score = avg["desktop"] if avg else item["desktop"]["performance"]
+            mobile_score = avg.get("mobile", item["mobile"]["performance"]) if avg else item["mobile"]["performance"]
+            desktop_score = avg.get("desktop", item["desktop"]["performance"]) if avg else item["desktop"]["performance"]
             points = avg["points"] if avg else 1
+            errors = avg["errors"] if avg else 0
+            total = avg["total"] if avg else 1
+            error_rate = avg["error_rate"] if avg else 0
             cards.append(
                 """
                 <div class="card">
@@ -448,6 +465,7 @@ def build_html(run_label: str, results: List[Dict[str, Any]], history: List[Dict
                   <div class="small">{url}</div>
                   <div class="v">Avg M {m} / Avg D {d}</div>
                   <div class="small">3-day average · {points} points</div>
+                  <div class="small">Error rate: {error_rate}% · {errors}/{total} runs</div>
                 </div>
                 """.format(
                     name=html_escape(short_name(item["url"])),
@@ -455,6 +473,9 @@ def build_html(run_label: str, results: List[Dict[str, Any]], history: List[Dict
                     m=mobile_score,
                     d=desktop_score,
                     points=points,
+                    error_rate=error_rate,
+                    errors=errors,
+                    total=total,
                 )
             )
 
@@ -531,8 +552,19 @@ def score_stats(values: List[int]) -> str:
     )
 
 
+def format_error_rate(errors: int, total: int) -> str:
+    if total == 0:
+        return "—"
+
+    return "{rate}% ({errors}/{total})".format(
+        rate=int(round((errors / float(total)) * 100)),
+        errors=errors,
+        total=total,
+    )
+
+
 def build_full_html(run_label: str, history: List[Dict[str, Any]], urls: List[str]) -> str:
-    by_day: Dict[str, Dict[str, Dict[str, List[int]]]] = {}
+    by_day: Dict[str, Dict[str, Dict[str, Any]]] = {}
 
     for entry in history:
         try:
@@ -543,11 +575,17 @@ def build_full_html(run_label: str, history: List[Dict[str, Any]], urls: List[st
         day_data = by_day.setdefault(day, {})
 
         for result in entry.get("results", []):
+            url = result.get("url", "")
+            url_data = day_data.setdefault(
+                url,
+                {"mobile": [], "desktop": [], "errors": 0, "total": 0},
+            )
+            url_data["total"] += 1
+
             if "error" in result:
+                url_data["errors"] += 1
                 continue
 
-            url = result.get("url", "")
-            url_data = day_data.setdefault(url, {"mobile": [], "desktop": []})
             url_data["mobile"].append(int(result["mobile"]["performance"]))
             url_data["desktop"].append(int(result["desktop"]["performance"]))
 
@@ -556,18 +594,25 @@ def build_full_html(run_label: str, history: List[Dict[str, Any]], urls: List[st
     for day in sorted(by_day.keys(), reverse=True):
         rows = []
         for url in urls:
-            values = by_day[day].get(url, {"mobile": [], "desktop": []})
+            values = by_day[day].get(
+                url,
+                {"mobile": [], "desktop": [], "errors": 0, "total": 0},
+            )
             rows.append(
                 """
                 <tr>
                   <td>{name}</td>
-                  <td>{runs}</td>
+                  <td>{success}</td>
+                  <td>{errors}</td>
+                  <td>{error_rate}</td>
                   <td>{mobile}</td>
                   <td>{desktop}</td>
                 </tr>
                 """.format(
                     name=html_escape(short_name(url)),
-                    runs=max(len(values["mobile"]), len(values["desktop"])),
+                    success=max(len(values["mobile"]), len(values["desktop"])),
+                    errors=values["errors"],
+                    error_rate=format_error_rate(values["errors"], values["total"]),
                     mobile=score_stats(values["mobile"]),
                     desktop=score_stats(values["desktop"]),
                 )
@@ -581,7 +626,9 @@ def build_full_html(run_label: str, history: List[Dict[str, Any]], urls: List[st
                 <thead>
                   <tr>
                     <th>URL</th>
-                    <th>Runs</th>
+                    <th>Success runs</th>
+                    <th>Error runs</th>
+                    <th>Error rate</th>
                     <th>Mobile avg / min / max</th>
                     <th>Desktop avg / min / max</th>
                   </tr>
