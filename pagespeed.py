@@ -26,6 +26,7 @@ HISTORY_FILE = os.path.join(OUT_DIR, "history.jsonl")
 
 # 3 days history if job runs every 5 minutes
 CHART_POINTS = 864
+HISTORY_DAYS = 3
 
 # Performance only
 CATEGORIES = ["performance"]
@@ -64,6 +65,8 @@ def short_name(url: str) -> str:
     if "websites-qa" in url:
         return "QA"
     if "websites-prod" in url:
+        return "PROD"
+    if "kuehne-nagel.com" in url:
         return "PROD"
     return url
 
@@ -186,6 +189,71 @@ def rewrite_last_n_jsonl(path: str, n: int) -> None:
     os.replace(tmp_path, path)
 
 
+def parse_timestamp(value: str) -> dt.datetime:
+    timestamp = dt.datetime.fromisoformat(value)
+    if timestamp.tzinfo is None:
+        timestamp = timestamp.astimezone()
+    return timestamp
+
+
+def filter_recent_history(
+    history: List[Dict[str, Any]], now: dt.datetime, days: int
+) -> List[Dict[str, Any]]:
+    cutoff = now - dt.timedelta(days=days)
+    recent = []
+
+    for entry in history:
+        try:
+            if parse_timestamp(entry["timestamp"]) >= cutoff:
+                recent.append(entry)
+        except Exception:
+            pass
+
+    return recent
+
+
+def rewrite_history(path: str, items: List[Dict[str, Any]]) -> None:
+    tmp_path = path + ".tmp"
+
+    with open(tmp_path, "w", encoding="utf-8") as file:
+        for item in items:
+            file.write(json.dumps(item, ensure_ascii=False) + "\n")
+
+    os.replace(tmp_path, path)
+
+
+def average_scores(history: List[Dict[str, Any]], urls: List[str]) -> Dict[str, Dict[str, int]]:
+    averages: Dict[str, Dict[str, int]] = {}
+
+    for url in urls:
+        mobile: List[int] = []
+        desktop: List[int] = []
+
+        for entry in history:
+            result = next(
+                (
+                    item
+                    for item in entry.get("results", [])
+                    if item.get("url") == url and "error" not in item
+                ),
+                None,
+            )
+            if not result:
+                continue
+
+            mobile.append(int(result["mobile"]["performance"]))
+            desktop.append(int(result["desktop"]["performance"]))
+
+        if mobile and desktop:
+            averages[url] = {
+                "mobile": int(round(sum(mobile) / float(len(mobile)))),
+                "desktop": int(round(sum(desktop) / float(len(desktop)))),
+                "points": min(len(mobile), len(desktop)),
+            }
+
+    return averages
+
+
 # =========================
 # HTML BUILDERS
 # =========================
@@ -222,7 +290,8 @@ def build_chart(history: List[Dict[str, Any]], urls: List[str]) -> str:
         desktop: List[int] = []
 
         for entry in history:
-            labels.append(entry.get("time", entry.get("timestamp", "")[11:16]))
+            timestamp = entry.get("timestamp", "")
+            labels.append(timestamp[5:16].replace("T", " ") if timestamp else entry.get("time", ""))
 
             results = entry.get("results", [])
             result = next((r for r in results if r.get("url") == url), None)
@@ -247,12 +316,8 @@ def build_chart(history: List[Dict[str, Any]], urls: List[str]) -> str:
             )
             continue
 
-        minv = max(0, min(min(mobile), min(desktop)) - 5)
-        maxv = min(100, max(max(mobile), max(desktop)) + 5)
-
-        if maxv - minv < 10:
-            minv = max(0, minv - 5)
-            maxv = min(100, maxv + 5)
+        minv = 0
+        maxv = 100
 
         plot_w = CHART_W - CHART_PAD_L - CHART_PAD_R
         plot_h = CHART_H - CHART_PAD_T - CHART_PAD_B
@@ -355,8 +420,10 @@ def build_chart(history: List[Dict[str, Any]], urls: List[str]) -> str:
 
 def build_html(run_label: str, results: List[Dict[str, Any]], history: List[Dict[str, Any]]) -> str:
     cards = []
+    averages = average_scores(history, URLS)
 
     for item in results:
+        avg = averages.get(item["url"])
         if "error" in item:
             cards.append(
                 """
@@ -371,18 +438,23 @@ def build_html(run_label: str, results: List[Dict[str, Any]], history: List[Dict
                 )
             )
         else:
+            mobile_score = avg["mobile"] if avg else item["mobile"]["performance"]
+            desktop_score = avg["desktop"] if avg else item["desktop"]["performance"]
+            points = avg["points"] if avg else 1
             cards.append(
                 """
                 <div class="card">
                   <div class="k">{name}</div>
                   <div class="small">{url}</div>
                   <div class="v">M {m} / D {d}</div>
+                  <div class="small">3-day average · {points} points</div>
                 </div>
                 """.format(
                     name=html_escape(short_name(item["url"])),
                     url=html_escape(item["url"]),
-                    m=item["mobile"]["performance"],
-                    d=item["desktop"]["performance"],
+                    m=mobile_score,
+                    d=desktop_score,
+                    points=points,
                 )
             )
 
@@ -432,7 +504,7 @@ def build_html(run_label: str, results: List[Dict[str, Any]], history: List[Dict
   </div>
 
   <div class="chart">
-    <h2>3-day trend (all runs)</h2>
+    <h2>3-day trend (linear 0–100 scale)</h2>
     {chart}
   </div>
 
@@ -445,6 +517,109 @@ def build_html(run_label: str, results: List[Dict[str, Any]], history: List[Dict
         history_len=len(history),
         cards="".join(cards),
         chart=chart,
+    )
+
+
+def score_stats(values: List[int]) -> str:
+    if not values:
+        return "—"
+
+    return "{avg} / {minv} / {maxv}".format(
+        avg=int(round(sum(values) / float(len(values)))),
+        minv=min(values),
+        maxv=max(values),
+    )
+
+
+def build_full_html(run_label: str, history: List[Dict[str, Any]], urls: List[str]) -> str:
+    by_day: Dict[str, Dict[str, Dict[str, List[int]]]] = {}
+
+    for entry in history:
+        try:
+            day = parse_timestamp(entry["timestamp"]).date().isoformat()
+        except Exception:
+            day = entry.get("timestamp", "unknown")[:10] or "unknown"
+
+        day_data = by_day.setdefault(day, {})
+
+        for result in entry.get("results", []):
+            if "error" in result:
+                continue
+
+            url = result.get("url", "")
+            url_data = day_data.setdefault(url, {"mobile": [], "desktop": []})
+            url_data["mobile"].append(int(result["mobile"]["performance"]))
+            url_data["desktop"].append(int(result["desktop"]["performance"]))
+
+    sections = []
+
+    for day in sorted(by_day.keys(), reverse=True):
+        rows = []
+        for url in urls:
+            values = by_day[day].get(url, {"mobile": [], "desktop": []})
+            rows.append(
+                """
+                <tr>
+                  <td>{name}</td>
+                  <td>{runs}</td>
+                  <td>{mobile}</td>
+                  <td>{desktop}</td>
+                </tr>
+                """.format(
+                    name=html_escape(short_name(url)),
+                    runs=max(len(values["mobile"]), len(values["desktop"])),
+                    mobile=score_stats(values["mobile"]),
+                    desktop=score_stats(values["desktop"]),
+                )
+            )
+
+        sections.append(
+            """
+            <section>
+              <h2>{day}</h2>
+              <table>
+                <thead>
+                  <tr>
+                    <th>URL</th>
+                    <th>Runs</th>
+                    <th>Mobile avg / min / max</th>
+                    <th>Desktop avg / min / max</th>
+                  </tr>
+                </thead>
+                <tbody>{rows}</tbody>
+              </table>
+            </section>
+            """.format(day=html_escape(day), rows="".join(rows))
+        )
+
+    return """<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>PageSpeed — Full Daily Report</title>
+  <style>
+    body {{ font-family: -apple-system, Segoe UI, Roboto, Arial; margin: 26px; color:#111; }}
+    .meta {{ color:#555; margin-top:6px; }}
+    section {{ margin-top:26px; }}
+    table {{ border-collapse:collapse; width:100%; margin-top:10px; }}
+    th, td {{ border-bottom:1px solid #e8e8e8; padding:10px 8px; text-align:left; }}
+    th {{ color:#555; font-size:12px; text-transform:uppercase; }}
+    td:first-child {{ font-weight:700; }}
+    a {{ color:#2563eb; }}
+  </style>
+</head>
+<body>
+  <h1 style="margin:0;">PageSpeed — Full Daily Report</h1>
+  <div class="meta"><b>Run:</b> {run} · <b>History window:</b> last {days} days · <b>Points:</b> {points}</div>
+  <p class="meta"><a href="index.html">Back to latest report</a></p>
+  {sections}
+</body>
+</html>
+""".format(
+        run=run_label,
+        days=HISTORY_DAYS,
+        points=len(history),
+        sections="".join(sections),
     )
 
 
@@ -494,8 +669,12 @@ def main() -> None:
     }
 
     append_jsonl(HISTORY_FILE, history_entry)
-    rewrite_last_n_jsonl(HISTORY_FILE, CHART_POINTS)
-    history = tail_jsonl(HISTORY_FILE, CHART_POINTS)
+    history = filter_recent_history(
+        tail_jsonl(HISTORY_FILE, CHART_POINTS * 4),
+        now,
+        HISTORY_DAYS,
+    )
+    rewrite_history(HISTORY_FILE, history)
 
     if all("error" in item for item in all_results):
         html = build_error_html(
@@ -507,6 +686,9 @@ def main() -> None:
 
     with open(os.path.join(OUT_DIR, "latest.html"), "w", encoding="utf-8") as file:
         file.write(html)
+
+    with open(os.path.join(OUT_DIR, "full.html"), "w", encoding="utf-8") as file:
+        file.write(build_full_html(run_label, history, URLS))
 
     print("✅ Done. History points:", len(history))
 

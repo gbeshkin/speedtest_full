@@ -3,7 +3,7 @@ name: PageSpeed Monitor
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/10 * * * *"
+    - cron: "*/5 * * * *"
 
 concurrency:
   group: pagespeed-monitor
@@ -32,12 +32,14 @@ jobs:
           python pagespeed.py
           ls -la reports
           test -f reports/latest.html
+          test -f reports/full.html
 
       - name: Publish to Pages (/docs)
         run: |
           mkdir -p docs
           cp reports/latest.html docs/index.html
           cp reports/latest.html docs/latest.html
+          cp reports/full.html docs/full.html
           touch docs/.nojekyll
           ls -la docs
 
