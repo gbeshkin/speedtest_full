@@ -13,9 +13,9 @@ from requests.exceptions import ReadTimeout, ConnectionError, Timeout
 # =========================
 
 URLS = [
-    "https://public.websites-dev.eu-central-1.kncloud.aws.int.kn/",
-    "https://public.websites-qa.eu-central-1.kncloud.aws.int.kn/",
     "https://www.kuehne-nagel.com",
+    "https://public.websites-qa.eu-central-1.kncloud.aws.int.kn/",
+    "https://public.websites-dev.eu-central-1.kncloud.aws.int.kn/",
 ]
 
 API_KEY = os.environ.get("PSI_API_KEY", "")
@@ -446,7 +446,7 @@ def build_html(run_label: str, results: List[Dict[str, Any]], history: List[Dict
                 <div class="card">
                   <div class="k">{name}</div>
                   <div class="small">{url}</div>
-                  <div class="v">M {m} / D {d}</div>
+                  <div class="v">Avg M {m} / Avg D {d}</div>
                   <div class="small">3-day average · {points} points</div>
                 </div>
                 """.format(
@@ -524,7 +524,7 @@ def score_stats(values: List[int]) -> str:
     if not values:
         return "—"
 
-    return "{avg} / {minv} / {maxv}".format(
+    return "avg {avg} / min {minv} / max {maxv}".format(
         avg=int(round(sum(values) / float(len(values)))),
         minv=min(values),
         maxv=max(values),
