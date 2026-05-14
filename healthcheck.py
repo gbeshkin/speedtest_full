@@ -1,10 +1,7 @@
 import os
 import time
-import json
 import datetime as dt
 from typing import Any, Dict, List
-
-import requests
 
 import pagespeed
 
@@ -12,7 +9,6 @@ import pagespeed
 OUT_DIR = "reports"
 HEALTH_HISTORY_FILE = os.path.join(OUT_DIR, "health-history.jsonl")
 HEALTH_REPORT_FILE = os.path.join(OUT_DIR, "health.html")
-ALERT_STATE_FILE = os.path.join(OUT_DIR, "health-alert-state.json")
 
 HISTORY_DAYS = 3
 RETENTION_DAYS = 30
@@ -20,8 +16,6 @@ RETENTION_POINTS = 43200
 
 CHECKS_PER_RUN = int(os.environ.get("HEALTH_CHECKS_PER_RUN", "5"))
 CHECK_INTERVAL_SECONDS = int(os.environ.get("HEALTH_CHECK_INTERVAL_SECONDS", "60"))
-TEAMS_WEBHOOK_URL = os.environ.get("TEAMS_HEALTH_WEBHOOK_URL", "")
-HEALTH_REPORT_URL = os.environ.get("HEALTH_REPORT_URL", "")
 
 
 def health_entry(now: dt.datetime) -> Dict[str, Any]:
@@ -59,27 +53,6 @@ def format_percent(ok_count: int, total: int) -> str:
     if total == 0:
         return "-"
     return "{}%".format(int(round((ok_count / float(total)) * 100)))
-
-
-def read_json(path: str, default: Dict[str, Any]) -> Dict[str, Any]:
-    if not os.path.exists(path):
-        return default
-
-    try:
-        with open(path, "r", encoding="utf-8") as file:
-            return json.load(file)
-    except Exception:
-        return default
-
-
-def write_json(path: str, data: Dict[str, Any]) -> None:
-    tmp_path = path + ".tmp"
-
-    with open(tmp_path, "w", encoding="utf-8") as file:
-        json.dump(data, file, ensure_ascii=False, indent=2, sort_keys=True)
-        file.write("\n")
-
-    os.replace(tmp_path, path)
 
 
 def health_stats(history: List[Dict[str, Any]], url: str) -> Dict[str, Any]:
@@ -152,165 +125,6 @@ def day_stats(history: List[Dict[str, Any]], urls: List[str]) -> Dict[str, Dict[
                 data["errors"] += 1
 
     return days
-
-
-def batch_stats(batch: List[Dict[str, Any]], urls: List[str]) -> Dict[str, Dict[str, Any]]:
-    stats: Dict[str, Dict[str, Any]] = {}
-
-    for url in urls:
-        total = 0
-        ok = 0
-        http_504 = 0
-        errors = 0
-        last_status = "-"
-        last_latency = "-"
-        last_checked = "-"
-
-        for entry in batch:
-            result = next(
-                (item for item in entry.get("results", []) if item.get("url") == url),
-                None,
-            )
-            if not result:
-                continue
-
-            health = result.get("health", {})
-            total += 1
-            last_checked = entry.get("timestamp", "-")
-            status = health.get("status")
-            last_status = str(status) if status is not None else "network error"
-            last_latency = "{} ms".format(health.get("latency_ms")) if health.get("latency_ms") is not None else "-"
-
-            if health.get("ok"):
-                ok += 1
-            if status == 504:
-                http_504 += 1
-            if health.get("error"):
-                errors += 1
-
-        if total == 0:
-            state = "UNKNOWN"
-        elif ok == total:
-            state = "OK"
-        elif ok == 0:
-            state = "DOWN"
-        else:
-            state = "DEGRADED"
-
-        if state == "OK" and (http_504 > 0 or errors > 0):
-            state = "DEGRADED"
-
-        stats[url] = {
-            "state": state,
-            "total": total,
-            "ok": ok,
-            "availability": format_percent(ok, total),
-            "http_504": http_504,
-            "errors": errors,
-            "last_status": last_status,
-            "last_latency": last_latency,
-            "last_checked": pagespeed.display_time(last_checked, with_seconds=True) if last_checked != "-" else "-",
-        }
-
-    return stats
-
-
-def teams_color(state: str) -> str:
-    if state == "OK":
-        return "2EB886"
-    if state == "DEGRADED":
-        return "F2C744"
-    if state == "DOWN":
-        return "D93F0B"
-    return "808080"
-
-
-def send_teams_alert(url: str, previous: str, current: str, stats: Dict[str, Any]) -> bool:
-    if not TEAMS_WEBHOOK_URL:
-        return False
-
-    name = pagespeed.short_name(url)
-    recovered = current == "OK" and previous not in ("", "OK", "UNKNOWN")
-    title = "{} health recovered".format(name) if recovered else "{} health {}".format(name, current.lower())
-    report_line = "\nReport: {}".format(HEALTH_REPORT_URL) if HEALTH_REPORT_URL else ""
-    text = (
-        "{title}\n\n"
-        "Previous state: {previous}\n"
-        "Current state: {current}\n"
-        "Availability: {availability} over last {total} checks\n"
-        "HTTP 504: {http_504}/{total}\n"
-        "Network errors: {errors}\n"
-        "Last status: {last_status}\n"
-        "Latency: {last_latency}\n"
-        "Checked: {last_checked}"
-        "{report_line}"
-    ).format(
-        title=title,
-        previous=previous or "UNKNOWN",
-        current=current,
-        availability=stats["availability"],
-        total=stats["total"],
-        http_504=stats["http_504"],
-        errors=stats["errors"],
-        last_status=stats["last_status"],
-        last_latency=stats["last_latency"],
-        last_checked=stats["last_checked"],
-        report_line=report_line,
-    )
-
-    payload = {
-        "summary": title,
-        "title": title,
-        "text": text,
-        "themeColor": teams_color(current),
-    }
-
-    response = requests.post(TEAMS_WEBHOOK_URL, json=payload, timeout=(5, 20))
-    if response.status_code >= 400:
-        raise RuntimeError(
-            "Teams webhook failed: HTTP {} {}".format(
-                response.status_code,
-                (response.text or "")[:500],
-            )
-        )
-
-    return True
-
-
-def process_alerts(batch: List[Dict[str, Any]], now: dt.datetime) -> None:
-    stats_by_url = batch_stats(batch, pagespeed.URLS)
-    state = read_json(ALERT_STATE_FILE, {"urls": {}})
-    urls_state = state.setdefault("urls", {})
-
-    for url in pagespeed.URLS:
-        stats = stats_by_url[url]
-        current = stats["state"]
-        previous = urls_state.get(url, {}).get("state", "UNKNOWN")
-
-        should_alert = current in ("DEGRADED", "DOWN") and previous != current
-        should_recover = current == "OK" and previous in ("DEGRADED", "DOWN")
-
-        if should_alert or should_recover:
-            try:
-                sent = send_teams_alert(url, previous, current, stats)
-                if sent:
-                    print("Teams alert sent:", pagespeed.short_name(url), previous, "->", current)
-                else:
-                    print("Teams webhook not configured:", pagespeed.short_name(url), previous, "->", current)
-            except Exception as exc:
-                print("Teams alert failed:", pagespeed.short_name(url), exc)
-
-        urls_state[url] = {
-            "state": current,
-            "updated_at": now.isoformat(timespec="seconds"),
-            "availability": stats["availability"],
-            "http_504": stats["http_504"],
-            "errors": stats["errors"],
-            "last_status": stats["last_status"],
-        }
-
-    state["updated_at"] = now.isoformat(timespec="seconds")
-    write_json(ALERT_STATE_FILE, state)
 
 
 def build_health_html(run_label: str, history: List[Dict[str, Any]]) -> str:
@@ -451,8 +265,6 @@ def main() -> None:
 
     recent = pagespeed.filter_recent_history(retained, now, HISTORY_DAYS)
     run_label = now.astimezone(pagespeed.DISPLAY_ZONE).strftime("%Y-%m-%d %H:%M %Z")
-
-    process_alerts(batch, now)
 
     with open(HEALTH_REPORT_FILE, "w", encoding="utf-8") as file:
         file.write(build_health_html(run_label, recent))
