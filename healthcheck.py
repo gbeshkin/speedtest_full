@@ -292,10 +292,78 @@ def email_body(name: str, url: str, previous: str, current: str, stats: Dict[str
     )
 
 
+def status_event_email_body(name: str, url: str, status: int, result: Dict[str, Any]) -> str:
+    health = result.get("health", {})
+    checked = pagespeed.display_time(result.get("timestamp", ""), with_seconds=True)
+    report_line = "\nDashboard: {}\n".format(HEALTH_REPORT_URL) if HEALTH_REPORT_URL else ""
+
+    return (
+        "{name} returned HTTP {status}.\n\n"
+        "URL: {url}\n"
+        "Status: {status}\n"
+        "Latency: {latency_ms} ms\n"
+        "Checked: {checked}\n"
+        "{report_line}"
+    ).format(
+        name=name,
+        url=url,
+        status=status,
+        latency_ms=health.get("latency_ms", "-"),
+        checked=checked,
+        report_line=report_line,
+    )
+
+
+def process_status_event_alerts(
+    batch: List[Dict[str, Any]],
+    state: Dict[str, Any],
+) -> None:
+    events = state.setdefault("events", {})
+
+    for entry in batch:
+        timestamp = entry.get("timestamp", "")
+
+        for result in entry.get("results", []):
+            url = result.get("url", "")
+            status = result.get("health", {}).get("status")
+
+            if status not in (502, 504):
+                continue
+
+            event_key = "{}|{}|{}".format(url, timestamp, status)
+            if event_key in events:
+                continue
+
+            name = pagespeed.short_name(url)
+            subject = "[Health] {} HTTP {}".format(name, status)
+            body = status_event_email_body(name, url, status, result)
+
+            try:
+                sent = send_email(subject, body)
+                if sent:
+                    print("Email HTTP status alert sent:", name, status, timestamp)
+                else:
+                    print("Email HTTP status alert skipped; SMTP is not configured:", name, status, timestamp)
+            except Exception as exc:
+                print("Email HTTP status alert failed:", name, status, exc)
+
+            events[event_key] = {
+                "url": url,
+                "status": status,
+                "timestamp": timestamp,
+            }
+
+    if len(events) > 500:
+        keep_keys = sorted(events.keys())[-500:]
+        state["events"] = {key: events[key] for key in keep_keys}
+
+
 def process_email_alerts(batch: List[Dict[str, Any]], now: dt.datetime) -> None:
     stats_by_url = batch_stats(batch, pagespeed.URLS)
     state = read_json(EMAIL_STATE_FILE, {"urls": {}})
     urls_state = state.setdefault("urls", {})
+
+    process_status_event_alerts(batch, state)
 
     for url in pagespeed.URLS:
         stats = stats_by_url[url]
