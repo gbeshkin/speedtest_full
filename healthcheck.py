@@ -9,6 +9,8 @@ import pagespeed
 OUT_DIR = "reports"
 HEALTH_HISTORY_FILE = os.path.join(OUT_DIR, "health-history.jsonl")
 HEALTH_REPORT_FILE = os.path.join(OUT_DIR, "health.html")
+PAGESPEED_REPORT_URL = "https://gbeshkin.github.io/speedtest_full/"
+FULL_PAGESPEED_REPORT_URL = "https://gbeshkin.github.io/speedtest_full/full.html"
 
 HISTORY_DAYS = 3
 RETENTION_DAYS = 30
@@ -224,7 +226,7 @@ def build_health_html(run_label: str, history: List[Dict[str, Any]]) -> str:
 <body>
   <h1 style="margin:0;">Health Monitor</h1>
   <div class="meta"><b>Run:</b> {run} · <b>Window:</b> last {days} days · <b>Checks:</b> {points}</div>
-  <p class="meta"><a href="index.html">PageSpeed report</a> · <a href="full.html">Full PageSpeed report</a></p>
+  <p class="meta"><a href="{pagespeed_url}">PageSpeed report</a> · <a href="{full_pagespeed_url}">Full PageSpeed report</a></p>
 
   <div class="row">
     {cards}
@@ -239,6 +241,8 @@ def build_health_html(run_label: str, history: List[Dict[str, Any]]) -> str:
         points=len(history),
         cards="".join(cards),
         sections="".join(sections),
+        pagespeed_url=pagespeed.html_escape(PAGESPEED_REPORT_URL),
+        full_pagespeed_url=pagespeed.html_escape(FULL_PAGESPEED_REPORT_URL),
     )
 
 
