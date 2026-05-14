@@ -7,6 +7,8 @@ import datetime as dt
 from email.message import EmailMessage
 from typing import Any, Dict, List
 
+import requests
+
 import pagespeed
 
 
@@ -24,6 +26,8 @@ RETENTION_POINTS = 43200
 CHECKS_PER_RUN = int(os.environ.get("HEALTH_CHECKS_PER_RUN", "5"))
 CHECK_INTERVAL_SECONDS = int(os.environ.get("HEALTH_CHECK_INTERVAL_SECONDS", "60"))
 EMAIL_ENABLED = os.environ.get("EMAIL_ENABLED", "false").lower() == "true"
+EMAIL_PROVIDER = os.environ.get("EMAIL_PROVIDER", "smtp").strip().lower()
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
 SMTP_HOST = os.environ.get("SMTP_HOST", "")
 SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
 SMTP_FORCE_IPV4 = os.environ.get("SMTP_FORCE_IPV4", "true").lower() == "true"
@@ -255,14 +259,22 @@ def batch_stats(batch: List[Dict[str, Any]], urls: List[str]) -> Dict[str, Dict[
 
 
 def email_configured() -> bool:
-    return EMAIL_ENABLED and SMTP_HOST and EMAIL_FROM and EMAIL_TO
+    if not (EMAIL_ENABLED and EMAIL_FROM and EMAIL_TO):
+        return False
+
+    if EMAIL_PROVIDER == "resend":
+        return bool(RESEND_API_KEY)
+
+    return bool(SMTP_HOST)
 
 
 def email_diagnostics() -> Dict[str, Any]:
     return {
         "enabled": EMAIL_ENABLED,
+        "provider": EMAIL_PROVIDER,
         "configured": bool(email_configured()),
         "test_on_start": EMAIL_TEST_ON_START,
+        "resend_api_key_set": bool(RESEND_API_KEY),
         "smtp_host": SMTP_HOST or "-",
         "smtp_port": SMTP_PORT,
         "smtp_force_ipv4": SMTP_FORCE_IPV4,
@@ -298,10 +310,7 @@ def smtp_client() -> smtplib.SMTP:
     return smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=30)
 
 
-def send_email(subject: str, body: str) -> bool:
-    if not email_configured():
-        return False
-
+def send_smtp_email(subject: str, body: str) -> bool:
     message = EmailMessage()
     message["Subject"] = subject
     message["From"] = EMAIL_FROM
@@ -317,12 +326,47 @@ def send_email(subject: str, body: str) -> bool:
     return True
 
 
+def send_resend_email(subject: str, body: str) -> bool:
+    response = requests.post(
+        "https://api.resend.com/emails",
+        headers={
+            "Authorization": "Bearer {}".format(RESEND_API_KEY),
+            "Content-Type": "application/json",
+        },
+        json={
+            "from": EMAIL_FROM,
+            "to": EMAIL_TO,
+            "subject": subject,
+            "text": body,
+        },
+        timeout=30,
+    )
+
+    if not 200 <= response.status_code < 300:
+        raise RuntimeError("Resend API {}: {}".format(response.status_code, response.text[:500]))
+
+    print("Resend email accepted:", response.text[:500])
+    return True
+
+
+def send_email(subject: str, body: str) -> bool:
+    if not email_configured():
+        return False
+
+    if EMAIL_PROVIDER == "resend":
+        return send_resend_email(subject, body)
+
+    return send_smtp_email(subject, body)
+
+
 def send_startup_test_email(now: dt.datetime) -> None:
-    subject = "[Health] SMTP test"
+    subject = "[Health] Email test"
     body = (
-        "Railway health monitor SMTP test.\n\n"
+        "Railway health monitor email test.\n\n"
         "Time: {time}\n"
         "Email enabled: {enabled}\n"
+        "Email provider: {provider}\n"
+        "Resend API key set: {resend_key_set}\n"
         "SMTP host: {host}\n"
         "SMTP port: {port}\n"
         "From: {sender}\n"
@@ -331,6 +375,8 @@ def send_startup_test_email(now: dt.datetime) -> None:
     ).format(
         time=now.astimezone(pagespeed.DISPLAY_ZONE).strftime("%Y-%m-%d %H:%M:%S %Z"),
         enabled=EMAIL_ENABLED,
+        provider=EMAIL_PROVIDER,
+        resend_key_set=bool(RESEND_API_KEY),
         host=SMTP_HOST or "-",
         port=SMTP_PORT,
         sender=EMAIL_FROM or "-",
@@ -341,11 +387,11 @@ def send_startup_test_email(now: dt.datetime) -> None:
     try:
         sent = send_email(subject, body)
         if sent:
-            print("Startup SMTP test email sent")
+            print("Startup email test sent")
         else:
-            print("Startup SMTP test email skipped; SMTP is not configured")
+            print("Startup email test skipped; email is not configured")
     except Exception as exc:
-        print("Startup SMTP test email failed:", exc)
+        print("Startup email test failed:", exc)
 
 
 def email_body(name: str, url: str, previous: str, current: str, stats: Dict[str, Any]) -> str:

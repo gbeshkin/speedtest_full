@@ -19,7 +19,9 @@ Environment variables:
 - `HEALTH_ALERT_WINDOW_CHECKS` - recent checks used for email alert state, default `3`.
 - `DISPLAY_TZ` - display timezone, default `Europe/Berlin`.
 - `PORT` - HTTP port, Railway sets this automatically.
-- `EMAIL_ENABLED` - set to `true` to enable SMTP email alerts.
+- `EMAIL_ENABLED` - set to `true` to enable email alerts.
+- `EMAIL_PROVIDER` - `resend` for Resend HTTP API or `smtp` for SMTP, default `smtp`.
+- `RESEND_API_KEY` - Resend API key when `EMAIL_PROVIDER=resend`.
 - `SMTP_HOST` - SMTP host, for Microsoft 365 usually `smtp.office365.com`.
 - `SMTP_PORT` - SMTP port, for Microsoft 365 usually `587`.
 - `SMTP_FORCE_IPV4` - set to `true` by default to avoid IPv6 routing issues in hosted containers.
@@ -28,7 +30,7 @@ Environment variables:
 - `EMAIL_FROM` - sender email address.
 - `EMAIL_TO` - comma-separated recipient list.
 - `HEALTH_REPORT_URL` - optional public Railway health dashboard URL included in emails.
-- `EMAIL_TEST_ON_START` - set to `true` to send one SMTP test email when the worker starts.
+- `EMAIL_TEST_ON_START` - set to `true` to send one test email when the worker starts.
 - `HEALTH_FORCE_STATUS` - optional test-only forced status for the first URL, for example `502`.
 
 The worker checks all URLs continuously and serves:
