@@ -22,6 +22,7 @@ Environment variables:
 - `EMAIL_ENABLED` - set to `true` to enable SMTP email alerts.
 - `SMTP_HOST` - SMTP host, for Microsoft 365 usually `smtp.office365.com`.
 - `SMTP_PORT` - SMTP port, for Microsoft 365 usually `587`.
+- `SMTP_FORCE_IPV4` - set to `true` by default to avoid IPv6 routing issues in hosted containers.
 - `SMTP_USER` - SMTP username.
 - `SMTP_PASSWORD` - SMTP password/app password/service mailbox secret.
 - `EMAIL_FROM` - sender email address.

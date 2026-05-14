@@ -132,6 +132,7 @@ def main() -> None:
         "alert_window_checks=",
         ALERT_WINDOW_CHECKS,
     )
+    print("Email diagnostics:", json.dumps(healthcheck.email_diagnostics(), sort_keys=True))
 
     if healthcheck.EMAIL_TEST_ON_START:
         healthcheck.send_startup_test_email(dt.datetime.now().astimezone())

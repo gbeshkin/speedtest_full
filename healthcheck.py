@@ -2,6 +2,7 @@ import os
 import time
 import json
 import smtplib
+import socket
 import datetime as dt
 from email.message import EmailMessage
 from typing import Any, Dict, List
@@ -25,6 +26,7 @@ CHECK_INTERVAL_SECONDS = int(os.environ.get("HEALTH_CHECK_INTERVAL_SECONDS", "60
 EMAIL_ENABLED = os.environ.get("EMAIL_ENABLED", "false").lower() == "true"
 SMTP_HOST = os.environ.get("SMTP_HOST", "")
 SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
+SMTP_FORCE_IPV4 = os.environ.get("SMTP_FORCE_IPV4", "true").lower() == "true"
 SMTP_USER = os.environ.get("SMTP_USER", "")
 SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
 EMAIL_FROM = os.environ.get("EMAIL_FROM", SMTP_USER)
@@ -256,6 +258,46 @@ def email_configured() -> bool:
     return EMAIL_ENABLED and SMTP_HOST and EMAIL_FROM and EMAIL_TO
 
 
+def email_diagnostics() -> Dict[str, Any]:
+    return {
+        "enabled": EMAIL_ENABLED,
+        "configured": bool(email_configured()),
+        "test_on_start": EMAIL_TEST_ON_START,
+        "smtp_host": SMTP_HOST or "-",
+        "smtp_port": SMTP_PORT,
+        "smtp_force_ipv4": SMTP_FORCE_IPV4,
+        "smtp_user_set": bool(SMTP_USER),
+        "smtp_password_set": bool(SMTP_PASSWORD),
+        "email_from": EMAIL_FROM or "-",
+        "email_to_count": len(EMAIL_TO),
+        "health_report_url_set": bool(HEALTH_REPORT_URL),
+        "force_status": HEALTH_FORCE_STATUS or "-",
+    }
+
+
+class IPv4SMTP(smtplib.SMTP):
+    def _get_socket(self, host: str, port: int, timeout: float) -> socket.socket:
+        last_error = None
+        addresses = socket.getaddrinfo(host, port, socket.AF_INET, socket.SOCK_STREAM)
+
+        for family, socktype, proto, _, sockaddr in addresses:
+            try:
+                print("SMTP connect:", host, port, "addr=", sockaddr[0])
+                return socket.create_connection(sockaddr, timeout, self.source_address)
+            except OSError as exc:
+                last_error = exc
+
+        if last_error:
+            raise last_error
+        raise OSError("No IPv4 SMTP address found for {}".format(host))
+
+
+def smtp_client() -> smtplib.SMTP:
+    if SMTP_FORCE_IPV4:
+        return IPv4SMTP(SMTP_HOST, SMTP_PORT, timeout=30)
+    return smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=30)
+
+
 def send_email(subject: str, body: str) -> bool:
     if not email_configured():
         return False
@@ -266,7 +308,7 @@ def send_email(subject: str, body: str) -> bool:
     message["To"] = ", ".join(EMAIL_TO)
     message.set_content(body)
 
-    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=30) as smtp:
+    with smtp_client() as smtp:
         smtp.starttls()
         if SMTP_USER or SMTP_PASSWORD:
             smtp.login(SMTP_USER, SMTP_PASSWORD)
