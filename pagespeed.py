@@ -3,6 +3,7 @@ import time
 import random
 import json
 import datetime as dt
+from zoneinfo import ZoneInfo
 from typing import Dict, Any, List
 
 import requests
@@ -46,6 +47,12 @@ CHART_PAD_B = 56
 
 SESSION = requests.Session()
 HEALTH_TIMEOUT = (5, 20)
+DISPLAY_TZ = os.environ.get("DISPLAY_TZ", "Europe/Berlin")
+
+try:
+    DISPLAY_ZONE = ZoneInfo(DISPLAY_TZ)
+except Exception:
+    DISPLAY_ZONE = dt.datetime.now().astimezone().tzinfo
 
 
 # =========================
@@ -72,6 +79,19 @@ def short_name(url: str) -> str:
     if "kuehne-nagel.com" in url:
         return "PROD"
     return url
+
+
+def display_time(value: str, with_seconds: bool = False) -> str:
+    if not value:
+        return "—"
+
+    try:
+        timestamp = parse_timestamp(value).astimezone(DISPLAY_ZONE)
+    except Exception:
+        return value
+
+    fmt = "%Y-%m-%d %H:%M:%S %Z" if with_seconds else "%Y-%m-%d %H:%M %Z"
+    return timestamp.strftime(fmt)
 
 
 # =========================
@@ -514,7 +534,7 @@ def build_html(run_label: str, results: List[Dict[str, Any]], history: List[Dict
             health_total = avg["health_total"] if avg else 0
             health_line = "Health checks: no data yet"
             if health_total:
-                last_504 = avg["last_504"][5:16].replace("T", " ") if avg["last_504"] else "—"
+                last_504 = display_time(avg["last_504"]) if avg["last_504"] else "—"
                 health_line = (
                     "Availability: {availability}% · HTTP 504: {http_504}/{health_total} · Last 504: {last_504}"
                 ).format(
@@ -703,7 +723,7 @@ def build_full_html(run_label: str, history: List[Dict[str, Any]], urls: List[st
                     "last_504": "",
                 },
             )
-            last_504 = values["last_504"][11:16] if values["last_504"] else "—"
+            last_504 = display_time(values["last_504"]) if values["last_504"] else "—"
             rows.append(
                 """
                 <tr>
@@ -796,7 +816,7 @@ def main() -> None:
     os.makedirs(OUT_DIR, exist_ok=True)
 
     now = dt.datetime.now().astimezone()
-    run_label = now.strftime("%Y-%m-%d %H:%M %z")
+    run_label = now.astimezone(DISPLAY_ZONE).strftime("%Y-%m-%d %H:%M %Z")
 
     all_results: List[Dict[str, Any]] = []
 

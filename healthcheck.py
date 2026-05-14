@@ -123,8 +123,8 @@ def health_stats(history: List[Dict[str, Any]], url: str) -> Dict[str, Any]:
         "errors": errors,
         "last_status": last_status,
         "last_latency": last_latency,
-        "last_504": last_504,
-        "last_checked": last_checked,
+        "last_504": pagespeed.display_time(last_504, with_seconds=True) if last_504 != "-" else "-",
+        "last_checked": pagespeed.display_time(last_checked, with_seconds=True) if last_checked != "-" else "-",
     }
 
 
@@ -209,7 +209,7 @@ def batch_stats(batch: List[Dict[str, Any]], urls: List[str]) -> Dict[str, Dict[
             "errors": errors,
             "last_status": last_status,
             "last_latency": last_latency,
-            "last_checked": last_checked,
+            "last_checked": pagespeed.display_time(last_checked, with_seconds=True) if last_checked != "-" else "-",
         }
 
     return stats
@@ -450,7 +450,7 @@ def main() -> None:
     pagespeed.rewrite_history(HEALTH_HISTORY_FILE, retained)
 
     recent = pagespeed.filter_recent_history(retained, now, HISTORY_DAYS)
-    run_label = now.strftime("%Y-%m-%d %H:%M %z")
+    run_label = now.astimezone(pagespeed.DISPLAY_ZONE).strftime("%Y-%m-%d %H:%M %Z")
 
     process_alerts(batch, now)
 
