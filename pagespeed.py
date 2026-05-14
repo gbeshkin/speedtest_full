@@ -48,7 +48,8 @@ CHART_PAD_B = 56
 SESSION = requests.Session()
 HEALTH_TIMEOUT = (5, 20)
 DISPLAY_TZ = os.environ.get("DISPLAY_TZ", "Europe/Berlin")
-RAILWAY_HEALTH_URL = os.environ.get("RAILWAY_HEALTH_URL", "").strip()
+DEFAULT_HEALTH_URL = "https://worker-production-d7fb.up.railway.app/"
+RAILWAY_HEALTH_URL = os.environ.get("RAILWAY_HEALTH_URL", DEFAULT_HEALTH_URL).strip()
 
 try:
     DISPLAY_ZONE = ZoneInfo(DISPLAY_TZ)
