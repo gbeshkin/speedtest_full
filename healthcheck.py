@@ -93,10 +93,12 @@ def write_json(path: str, data: Dict[str, Any]) -> None:
 def health_stats(history: List[Dict[str, Any]], url: str) -> Dict[str, Any]:
     total = 0
     ok = 0
+    http_502 = 0
     http_504 = 0
     errors = 0
     last_status = "-"
     last_latency = "-"
+    last_502 = "-"
     last_504 = "-"
     last_checked = "-"
 
@@ -117,6 +119,9 @@ def health_stats(history: List[Dict[str, Any]], url: str) -> Dict[str, Any]:
 
         if health.get("ok"):
             ok += 1
+        if status == 502:
+            http_502 += 1
+            last_502 = entry.get("timestamp", "-")
         if status == 504:
             http_504 += 1
             last_504 = entry.get("timestamp", "-")
@@ -127,10 +132,12 @@ def health_stats(history: List[Dict[str, Any]], url: str) -> Dict[str, Any]:
         "total": total,
         "ok": ok,
         "availability": format_percent(ok, total),
+        "http_502": http_502,
         "http_504": http_504,
         "errors": errors,
         "last_status": last_status,
         "last_latency": last_latency,
+        "last_502": pagespeed.display_time(last_502, with_seconds=True) if last_502 != "-" else "-",
         "last_504": pagespeed.display_time(last_504, with_seconds=True) if last_504 != "-" else "-",
         "last_checked": pagespeed.display_time(last_checked, with_seconds=True) if last_checked != "-" else "-",
     }
@@ -149,11 +156,13 @@ def day_stats(history: List[Dict[str, Any]], urls: List[str]) -> Dict[str, Dict[
 
         for result in entry.get("results", []):
             url = result.get("url", "")
-            data = day_data.setdefault(url, {"total": 0, "ok": 0, "http_504": 0, "errors": 0})
+            data = day_data.setdefault(url, {"total": 0, "ok": 0, "http_502": 0, "http_504": 0, "errors": 0})
             health = result.get("health", {})
             data["total"] += 1
             if health.get("ok"):
                 data["ok"] += 1
+            if health.get("status") == 502:
+                data["http_502"] += 1
             if health.get("status") == 504:
                 data["http_504"] += 1
             if health.get("error"):
@@ -168,6 +177,7 @@ def batch_stats(batch: List[Dict[str, Any]], urls: List[str]) -> Dict[str, Dict[
     for url in urls:
         total = 0
         ok = 0
+        http_502 = 0
         http_504 = 0
         errors = 0
         last_status = "-"
@@ -191,6 +201,8 @@ def batch_stats(batch: List[Dict[str, Any]], urls: List[str]) -> Dict[str, Dict[
 
             if health.get("ok"):
                 ok += 1
+            if status == 502:
+                http_502 += 1
             if status == 504:
                 http_504 += 1
             if health.get("error"):
@@ -205,7 +217,7 @@ def batch_stats(batch: List[Dict[str, Any]], urls: List[str]) -> Dict[str, Dict[
         else:
             state = "DEGRADED"
 
-        if state == "OK" and (http_504 > 0 or errors > 0):
+        if state == "OK" and (http_502 > 0 or http_504 > 0 or errors > 0):
             state = "DEGRADED"
 
         stats[url] = {
@@ -213,6 +225,7 @@ def batch_stats(batch: List[Dict[str, Any]], urls: List[str]) -> Dict[str, Dict[
             "total": total,
             "ok": ok,
             "availability": format_percent(ok, total),
+            "http_502": http_502,
             "http_504": http_504,
             "errors": errors,
             "last_status": last_status,
@@ -255,6 +268,7 @@ def email_body(name: str, url: str, previous: str, current: str, stats: Dict[str
         "Previous state: {previous}\n"
         "Current state: {current}\n"
         "Availability: {availability} over last {total} checks\n"
+        "HTTP 502: {http_502}/{total}\n"
         "HTTP 504: {http_504}/{total}\n"
         "Network errors: {errors}\n"
         "Last status: {last_status}\n"
@@ -268,6 +282,7 @@ def email_body(name: str, url: str, previous: str, current: str, stats: Dict[str
         current=current,
         availability=stats["availability"],
         total=stats["total"],
+        http_502=stats["http_502"],
         http_504=stats["http_504"],
         errors=stats["errors"],
         last_status=stats["last_status"],
@@ -312,6 +327,7 @@ def process_email_alerts(batch: List[Dict[str, Any]], now: dt.datetime) -> None:
             "updated_at": now.isoformat(timespec="seconds"),
             "availability": stats["availability"],
             "http_504": stats["http_504"],
+            "http_502": stats["http_502"],
             "errors": stats["errors"],
             "last_status": stats["last_status"],
         }
@@ -331,19 +347,23 @@ def build_health_html(run_label: str, history: List[Dict[str, Any]]) -> str:
               <div class="k">{name}</div>
               <div class="small">{url}</div>
               <div class="v">{availability}</div>
-              <div class="small">HTTP 504: {http_504}/{total} · Network errors: {errors}</div>
+              <div class="small">HTTP 502: {http_502}/{total} · HTTP 504: {http_504}/{total}</div>
+              <div class="small">Network errors: {errors}</div>
               <div class="small">Last status: {last_status} · {last_latency}</div>
+              <div class="small">Last 502: {last_502}</div>
               <div class="small">Last 504: {last_504}</div>
             </div>
             """.format(
                 name=pagespeed.html_escape(pagespeed.short_name(url)),
                 url=pagespeed.html_escape(url),
                 availability=stats["availability"],
+                http_502=stats["http_502"],
                 http_504=stats["http_504"],
                 total=stats["total"],
                 errors=stats["errors"],
                 last_status=pagespeed.html_escape(stats["last_status"]),
                 last_latency=pagespeed.html_escape(stats["last_latency"]),
+                last_502=pagespeed.html_escape(stats["last_502"]),
                 last_504=pagespeed.html_escape(stats["last_504"]),
             )
         )
@@ -354,12 +374,13 @@ def build_health_html(run_label: str, history: List[Dict[str, Any]]) -> str:
     for day in sorted(daily.keys(), reverse=True):
         rows = []
         for url in pagespeed.URLS:
-            data = daily[day].get(url, {"total": 0, "ok": 0, "http_504": 0, "errors": 0})
+            data = daily[day].get(url, {"total": 0, "ok": 0, "http_502": 0, "http_504": 0, "errors": 0})
             rows.append(
                 """
                 <tr>
                   <td>{name}</td>
                   <td>{availability}</td>
+                  <td>{http_502}/{total}</td>
                   <td>{http_504}/{total}</td>
                   <td>{errors}</td>
                   <td>{total}</td>
@@ -367,6 +388,7 @@ def build_health_html(run_label: str, history: List[Dict[str, Any]]) -> str:
                 """.format(
                     name=pagespeed.html_escape(pagespeed.short_name(url)),
                     availability=format_percent(data["ok"], data["total"]),
+                    http_502=data["http_502"],
                     http_504=data["http_504"],
                     total=data["total"],
                     errors=data["errors"],
@@ -382,6 +404,7 @@ def build_health_html(run_label: str, history: List[Dict[str, Any]]) -> str:
                   <tr>
                     <th>URL</th>
                     <th>Availability</th>
+                    <th>HTTP 502</th>
                     <th>HTTP 504</th>
                     <th>Network errors</th>
                     <th>Checks</th>
@@ -397,6 +420,7 @@ def build_health_html(run_label: str, history: List[Dict[str, Any]]) -> str:
 <html>
 <head>
   <meta charset="utf-8">
+  <meta http-equiv="refresh" content="60">
   <title>Health Monitor</title>
   <style>
     body {{ font-family: -apple-system, Segoe UI, Roboto, Arial; margin: 26px; color:#111; }}

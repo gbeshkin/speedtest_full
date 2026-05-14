@@ -51,10 +51,12 @@ def current_status() -> dict:
             "url": url,
             "availability": stats["availability"],
             "checks": stats["total"],
+            "http_502": stats["http_502"],
             "http_504": stats["http_504"],
             "network_errors": stats["errors"],
             "last_status": stats["last_status"],
             "last_latency": stats["last_latency"],
+            "last_502": stats["last_502"],
             "last_504": stats["last_504"],
             "last_checked": stats["last_checked"],
         }
@@ -81,14 +83,16 @@ class HealthHandler(BaseHTTPRequestHandler):
         self.send_error(404)
 
     def serve_health_html(self) -> None:
-        if not os.path.exists(healthcheck.HEALTH_REPORT_FILE):
-            write_report(dt.datetime.now().astimezone())
+        write_report(dt.datetime.now().astimezone())
 
         with open(healthcheck.HEALTH_REPORT_FILE, "rb") as file:
             data = file.read()
 
         self.send_response(200)
         self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+        self.send_header("Pragma", "no-cache")
+        self.send_header("Expires", "0")
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
         self.wfile.write(data)
@@ -98,6 +102,9 @@ class HealthHandler(BaseHTTPRequestHandler):
 
         self.send_response(200)
         self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+        self.send_header("Pragma", "no-cache")
+        self.send_header("Expires", "0")
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
         self.wfile.write(data)
