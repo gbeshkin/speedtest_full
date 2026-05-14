@@ -30,13 +30,29 @@ SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
 EMAIL_FROM = os.environ.get("EMAIL_FROM", SMTP_USER)
 EMAIL_TO = [item.strip() for item in os.environ.get("EMAIL_TO", "").split(",") if item.strip()]
 HEALTH_REPORT_URL = os.environ.get("HEALTH_REPORT_URL", "")
+EMAIL_TEST_ON_START = os.environ.get("EMAIL_TEST_ON_START", "false").lower() == "true"
+HEALTH_FORCE_STATUS = os.environ.get("HEALTH_FORCE_STATUS", "").strip()
 
 
 def health_entry(now: dt.datetime) -> Dict[str, Any]:
     results = []
 
-    for url in pagespeed.URLS:
+    for index, url in enumerate(pagespeed.URLS):
         health = pagespeed.check_url_health(url)
+        if HEALTH_FORCE_STATUS and index == 0:
+            try:
+                forced_status = int(HEALTH_FORCE_STATUS)
+                health = {
+                    "ok": 200 <= forced_status < 500,
+                    "status": forced_status,
+                    "latency_ms": health.get("latency_ms"),
+                    "error": None,
+                    "forced": True,
+                }
+                print("Forced health status for test:", pagespeed.short_name(url), forced_status)
+            except ValueError:
+                print("Invalid HEALTH_FORCE_STATUS value:", HEALTH_FORCE_STATUS)
+
         print(
             "Health check:",
             pagespeed.short_name(url),
@@ -257,6 +273,37 @@ def send_email(subject: str, body: str) -> bool:
         smtp.send_message(message)
 
     return True
+
+
+def send_startup_test_email(now: dt.datetime) -> None:
+    subject = "[Health] SMTP test"
+    body = (
+        "Railway health monitor SMTP test.\n\n"
+        "Time: {time}\n"
+        "Email enabled: {enabled}\n"
+        "SMTP host: {host}\n"
+        "SMTP port: {port}\n"
+        "From: {sender}\n"
+        "To: {recipients}\n"
+        "Dashboard: {dashboard}\n"
+    ).format(
+        time=now.astimezone(pagespeed.DISPLAY_ZONE).strftime("%Y-%m-%d %H:%M:%S %Z"),
+        enabled=EMAIL_ENABLED,
+        host=SMTP_HOST or "-",
+        port=SMTP_PORT,
+        sender=EMAIL_FROM or "-",
+        recipients=", ".join(EMAIL_TO) or "-",
+        dashboard=HEALTH_REPORT_URL or "-",
+    )
+
+    try:
+        sent = send_email(subject, body)
+        if sent:
+            print("Startup SMTP test email sent")
+        else:
+            print("Startup SMTP test email skipped; SMTP is not configured")
+    except Exception as exc:
+        print("Startup SMTP test email failed:", exc)
 
 
 def email_body(name: str, url: str, previous: str, current: str, stats: Dict[str, Any]) -> str:

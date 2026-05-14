@@ -27,6 +27,8 @@ Environment variables:
 - `EMAIL_FROM` - sender email address.
 - `EMAIL_TO` - comma-separated recipient list.
 - `HEALTH_REPORT_URL` - optional public Railway health dashboard URL included in emails.
+- `EMAIL_TEST_ON_START` - set to `true` to send one SMTP test email when the worker starts.
+- `HEALTH_FORCE_STATUS` - optional test-only forced status for the first URL, for example `502`.
 
 The worker checks all URLs continuously and serves:
 
@@ -38,3 +40,13 @@ GitHub Actions environment used by the PageSpeed workflow.
 
 Email alerts are sent only when state changes, for example `OK -> DEGRADED`,
 `OK -> DOWN`, or recovery back to `OK`.
+
+To test email delivery without waiting for a real outage, temporarily set:
+
+```bash
+EMAIL_TEST_ON_START=true
+HEALTH_FORCE_STATUS=502
+```
+
+After the test, remove `HEALTH_FORCE_STATUS` and set `EMAIL_TEST_ON_START=false`
+so the worker stops simulating failures.

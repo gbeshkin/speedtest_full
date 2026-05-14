@@ -133,6 +133,9 @@ def main() -> None:
         ALERT_WINDOW_CHECKS,
     )
 
+    if healthcheck.EMAIL_TEST_ON_START:
+        healthcheck.send_startup_test_email(dt.datetime.now().astimezone())
+
     while True:
         started = time.monotonic()
         now = dt.datetime.now().astimezone()
