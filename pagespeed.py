@@ -596,7 +596,7 @@ def build_html(run_label: str, results: List[Dict[str, Any]], history: List[Dict
     {chart}
   </div>
 
-  <p class="meta">Full daily report: <a href="full.html">full.html</a></p>
+  <p class="meta">Full daily report: <a href="full.html">full.html</a> · Health report: <a href="health.html">health.html</a></p>
 </body>
 </html>
 """.format(
@@ -776,7 +776,7 @@ def build_full_html(run_label: str, history: List[Dict[str, Any]], urls: List[st
 <body>
   <h1 style="margin:0;">PageSpeed — Full Daily Report</h1>
   <div class="meta"><b>Run:</b> {run} · <b>History window:</b> last {days} days · <b>Points:</b> {points}</div>
-  <p class="meta"><a href="index.html">Back to latest report</a></p>
+  <p class="meta"><a href="index.html">Back to latest report</a> · <a href="health.html">Health report</a></p>
   {sections}
 </body>
 </html>
