@@ -15,6 +15,9 @@ from requests.exceptions import ReadTimeout, ConnectionError, Timeout, RequestEx
 
 URLS = [
     "https://www.kuehne-nagel.com",
+    "https://www.kuehne-nagel.com/webinar/",
+    "https://www.kuehne-nagel.com/services/customs-clearance",
+    "https://www.kuehne-nagel.com/stories",
     "https://public.websites-qa.eu-central-1.kncloud.aws.int.kn/",
     "https://public.websites-dev.eu-central-1.kncloud.aws.int.kn/",
 ]
@@ -78,6 +81,12 @@ def short_name(url: str) -> str:
         return "QA"
     if "websites-prod" in url:
         return "PROD"
+    if "kuehne-nagel.com/webinar" in url:
+        return "PROD Webinar"
+    if "kuehne-nagel.com/services/customs-clearance" in url:
+        return "PROD Customs"
+    if "kuehne-nagel.com/stories" in url:
+        return "PROD Stories"
     if "kuehne-nagel.com" in url:
         return "PROD"
     return url
