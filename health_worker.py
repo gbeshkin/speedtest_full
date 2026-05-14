@@ -3,14 +3,17 @@ import time
 import json
 import datetime as dt
 import threading
+from collections import deque
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
+from typing import Deque, Dict, Any
 
 import healthcheck
 import pagespeed
 
 
 INTERVAL_SECONDS = int(os.environ.get("HEALTH_INTERVAL_SECONDS", "60"))
+ALERT_WINDOW_CHECKS = int(os.environ.get("HEALTH_ALERT_WINDOW_CHECKS", "3"))
 RETENTION_EVERY_CHECKS = int(os.environ.get("HEALTH_RETENTION_EVERY_CHECKS", "60"))
 PORT = int(os.environ.get("PORT", "8080"))
 
@@ -111,6 +114,7 @@ def start_http_server() -> None:
 
 def main() -> None:
     os.makedirs(healthcheck.OUT_DIR, exist_ok=True)
+    recent_batch: Deque[Dict[str, Any]] = deque(maxlen=max(1, ALERT_WINDOW_CHECKS))
     checks = 0
     threading.Thread(target=start_http_server, daemon=True).start()
 
@@ -118,6 +122,8 @@ def main() -> None:
         "Starting Railway health worker:",
         "interval_seconds=",
         INTERVAL_SECONDS,
+        "alert_window_checks=",
+        ALERT_WINDOW_CHECKS,
     )
 
     while True:
@@ -126,8 +132,10 @@ def main() -> None:
         entry = healthcheck.health_entry(now)
 
         pagespeed.append_jsonl(healthcheck.HEALTH_HISTORY_FILE, entry)
+        recent_batch.append(entry)
         checks += 1
 
+        healthcheck.process_email_alerts(list(recent_batch), now)
         write_report(now)
 
         if checks % max(1, RETENTION_EVERY_CHECKS) == 0:
