@@ -17,5 +17,12 @@ Environment variables:
 
 - `HEALTH_INTERVAL_SECONDS` - check interval, default `60`.
 - `DISPLAY_TZ` - display timezone, default `Europe/Berlin`.
+- `PORT` - HTTP port, Railway sets this automatically.
 
-The worker checks all URLs continuously and updates the local health report.
+The worker checks all URLs continuously and serves:
+
+- `/` or `/health.html` - live health dashboard.
+- `/health.json` - live status JSON.
+
+For GitHub Pages links to point at Railway, set `RAILWAY_HEALTH_URL` in the
+GitHub Actions environment used by the PageSpeed workflow.

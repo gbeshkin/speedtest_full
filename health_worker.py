@@ -1,6 +1,10 @@
 import os
 import time
+import json
 import datetime as dt
+import threading
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import urlparse
 
 import healthcheck
 import pagespeed
@@ -8,6 +12,13 @@ import pagespeed
 
 INTERVAL_SECONDS = int(os.environ.get("HEALTH_INTERVAL_SECONDS", "60"))
 RETENTION_EVERY_CHECKS = int(os.environ.get("HEALTH_RETENTION_EVERY_CHECKS", "60"))
+PORT = int(os.environ.get("PORT", "8080"))
+
+
+def recent_health() -> list:
+    retained = pagespeed.tail_jsonl(healthcheck.HEALTH_HISTORY_FILE, healthcheck.RETENTION_POINTS * 2)
+    now = dt.datetime.now().astimezone()
+    return pagespeed.filter_recent_history(retained, now, healthcheck.HISTORY_DAYS)
 
 
 def trim_history(now: dt.datetime) -> None:
@@ -20,17 +31,88 @@ def trim_history(now: dt.datetime) -> None:
 
 
 def write_report(now: dt.datetime) -> None:
-    retained = pagespeed.tail_jsonl(healthcheck.HEALTH_HISTORY_FILE, healthcheck.RETENTION_POINTS * 2)
-    recent = pagespeed.filter_recent_history(retained, now, healthcheck.HISTORY_DAYS)
+    recent = recent_health()
     run_label = now.astimezone(pagespeed.DISPLAY_ZONE).strftime("%Y-%m-%d %H:%M %Z")
 
     with open(healthcheck.HEALTH_REPORT_FILE, "w", encoding="utf-8") as file:
         file.write(healthcheck.build_health_html(run_label, recent))
 
 
+def current_status() -> dict:
+    recent = recent_health()
+    urls = {}
+
+    for url in pagespeed.URLS:
+        stats = healthcheck.health_stats(recent, url)
+        urls[pagespeed.short_name(url)] = {
+            "url": url,
+            "availability": stats["availability"],
+            "checks": stats["total"],
+            "http_504": stats["http_504"],
+            "network_errors": stats["errors"],
+            "last_status": stats["last_status"],
+            "last_latency": stats["last_latency"],
+            "last_504": stats["last_504"],
+            "last_checked": stats["last_checked"],
+        }
+
+    return {
+        "generated_at": dt.datetime.now().astimezone(pagespeed.DISPLAY_ZONE).isoformat(timespec="seconds"),
+        "window_days": healthcheck.HISTORY_DAYS,
+        "urls": urls,
+    }
+
+
+class HealthHandler(BaseHTTPRequestHandler):
+    def do_GET(self) -> None:
+        path = urlparse(self.path).path
+
+        if path in ("/", "/health.html"):
+            self.serve_health_html()
+            return
+
+        if path == "/health.json":
+            self.serve_health_json()
+            return
+
+        self.send_error(404)
+
+    def serve_health_html(self) -> None:
+        if not os.path.exists(healthcheck.HEALTH_REPORT_FILE):
+            write_report(dt.datetime.now().astimezone())
+
+        with open(healthcheck.HEALTH_REPORT_FILE, "rb") as file:
+            data = file.read()
+
+        self.send_response(200)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def serve_health_json(self) -> None:
+        data = json.dumps(current_status(), ensure_ascii=False, indent=2).encode("utf-8")
+
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def log_message(self, format: str, *args: object) -> None:
+        print("HTTP:", self.address_string(), format % args)
+
+
+def start_http_server() -> None:
+    server = ThreadingHTTPServer(("0.0.0.0", PORT), HealthHandler)
+    print("Serving health dashboard on port", PORT)
+    server.serve_forever()
+
+
 def main() -> None:
     os.makedirs(healthcheck.OUT_DIR, exist_ok=True)
     checks = 0
+    threading.Thread(target=start_http_server, daemon=True).start()
 
     print(
         "Starting Railway health worker:",

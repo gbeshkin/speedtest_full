@@ -28,6 +28,7 @@ jobs:
       - name: Run PageSpeed
         env:
           PSI_API_KEY: ${{ secrets.PSI_API_KEY }}
+          RAILWAY_HEALTH_URL: ${{ vars.RAILWAY_HEALTH_URL }}
         run: |
           python pagespeed.py
           ls -la reports

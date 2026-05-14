@@ -48,6 +48,7 @@ CHART_PAD_B = 56
 SESSION = requests.Session()
 HEALTH_TIMEOUT = (5, 20)
 DISPLAY_TZ = os.environ.get("DISPLAY_TZ", "Europe/Berlin")
+RAILWAY_HEALTH_URL = os.environ.get("RAILWAY_HEALTH_URL", "").strip()
 
 try:
     DISPLAY_ZONE = ZoneInfo(DISPLAY_TZ)
@@ -92,6 +93,10 @@ def display_time(value: str, with_seconds: bool = False) -> str:
 
     fmt = "%Y-%m-%d %H:%M:%S %Z" if with_seconds else "%Y-%m-%d %H:%M %Z"
     return timestamp.strftime(fmt)
+
+
+def health_report_url() -> str:
+    return RAILWAY_HEALTH_URL or "health.html"
 
 
 # =========================
@@ -616,7 +621,7 @@ def build_html(run_label: str, results: List[Dict[str, Any]], history: List[Dict
     {chart}
   </div>
 
-  <p class="meta">Full daily report: <a href="full.html">full.html</a> · Health report: <a href="health.html">health.html</a></p>
+  <p class="meta">Full daily report: <a href="full.html">full.html</a> · Live health: <a href="{health_url}">health dashboard</a></p>
 </body>
 </html>
 """.format(
@@ -625,6 +630,7 @@ def build_html(run_label: str, results: List[Dict[str, Any]], history: List[Dict
         history_len=len(history),
         cards="".join(cards),
         chart=chart,
+        health_url=html_escape(health_report_url()),
     )
 
 
@@ -796,7 +802,7 @@ def build_full_html(run_label: str, history: List[Dict[str, Any]], urls: List[st
 <body>
   <h1 style="margin:0;">PageSpeed — Full Daily Report</h1>
   <div class="meta"><b>Run:</b> {run} · <b>History window:</b> last {days} days · <b>Points:</b> {points}</div>
-  <p class="meta"><a href="index.html">Back to latest report</a> · <a href="health.html">Health report</a></p>
+  <p class="meta"><a href="index.html">Back to latest report</a> · <a href="{health_url}">Live health dashboard</a></p>
   {sections}
 </body>
 </html>
@@ -805,6 +811,7 @@ def build_full_html(run_label: str, history: List[Dict[str, Any]], urls: List[st
         days=HISTORY_DAYS,
         points=len(history),
         sections="".join(sections),
+        health_url=html_escape(health_report_url()),
     )
 
 
