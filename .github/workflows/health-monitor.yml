@@ -29,11 +29,14 @@ jobs:
         env:
           HEALTH_CHECKS_PER_RUN: "5"
           HEALTH_CHECK_INTERVAL_SECONDS: "60"
+          TEAMS_HEALTH_WEBHOOK_URL: ${{ secrets.TEAMS_HEALTH_WEBHOOK_URL }}
+          HEALTH_REPORT_URL: ${{ vars.HEALTH_REPORT_URL }}
         run: |
           python healthcheck.py
           ls -la reports
           test -f reports/health.html
           test -f reports/health-history.jsonl
+          test -f reports/health-alert-state.json
 
       - name: Publish health report to Pages (/docs)
         run: |
