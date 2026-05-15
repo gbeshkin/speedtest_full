@@ -17,6 +17,7 @@ Environment variables:
 
 - `HEALTH_INTERVAL_SECONDS` - check interval, default `60`.
 - `HEALTH_ALERT_WINDOW_CHECKS` - recent checks used for email alert state, default `3`.
+- `HEALTH_OUT_DIR` - optional directory for health history files. If unset, the worker uses Railway's `RAILWAY_VOLUME_MOUNT_PATH` when a volume is attached, otherwise `reports`.
 - `DISPLAY_TZ` - display timezone, default `Europe/Berlin`.
 - `PORT` - HTTP port, Railway sets this automatically.
 - `EMAIL_ENABLED` - set to `true` to enable email alerts.
@@ -43,6 +44,12 @@ GitHub Actions environment used by the PageSpeed workflow.
 
 Email alerts are sent only when state changes, for example `OK -> DEGRADED`,
 `OK -> DOWN`, or recovery back to `OK`.
+
+To keep health history across Railway restarts and deploys, attach a Railway
+Volume to the worker service. Railway exposes its mount path as
+`RAILWAY_VOLUME_MOUNT_PATH`, and the worker will store `health-history.jsonl`
+and `health-email-state.json` there automatically. You can override this with
+`HEALTH_OUT_DIR`.
 
 To test email delivery without waiting for a real outage, temporarily set:
 

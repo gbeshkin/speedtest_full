@@ -131,6 +131,10 @@ def main() -> None:
         INTERVAL_SECONDS,
         "alert_window_checks=",
         ALERT_WINDOW_CHECKS,
+        "out_dir=",
+        healthcheck.OUT_DIR,
+        "history_file=",
+        healthcheck.HEALTH_HISTORY_FILE,
     )
     print("Email diagnostics:", json.dumps(healthcheck.email_diagnostics(), sort_keys=True))
 

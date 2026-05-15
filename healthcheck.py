@@ -12,7 +12,11 @@ import requests
 import pagespeed
 
 
-OUT_DIR = "reports"
+OUT_DIR = (
+    os.environ.get("HEALTH_OUT_DIR")
+    or os.environ.get("RAILWAY_VOLUME_MOUNT_PATH")
+    or "reports"
+)
 HEALTH_HISTORY_FILE = os.path.join(OUT_DIR, "health-history.jsonl")
 HEALTH_REPORT_FILE = os.path.join(OUT_DIR, "health.html")
 EMAIL_STATE_FILE = os.path.join(OUT_DIR, "health-email-state.json")
