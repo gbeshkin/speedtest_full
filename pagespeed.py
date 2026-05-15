@@ -621,6 +621,7 @@ def build_html(run_label: str, results: List[Dict[str, Any]], history: List[Dict
 <body>
   <h1 style="margin:0;">PageSpeed — Performance (5 min)</h1>
   <div class="meta"><b>Run:</b> {run} · <b>URLs:</b> {count} · <b>History points:</b> {history_len}</div>
+  <p class="meta">Full daily report: <a href="full.html">full.html</a> · Live health: <a href="{health_url}">health dashboard</a></p>
 
   <div class="row">
     {cards}
@@ -630,8 +631,6 @@ def build_html(run_label: str, results: List[Dict[str, Any]], history: List[Dict
     <h2>3-day trend (linear 0–100 scale)</h2>
     {chart}
   </div>
-
-  <p class="meta">Full daily report: <a href="full.html">full.html</a> · Live health: <a href="{health_url}">health dashboard</a></p>
 </body>
 </html>
 """.format(
