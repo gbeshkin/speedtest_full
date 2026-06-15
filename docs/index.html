@@ -35,7 +35,7 @@
 </head>
 <body>
   <h1 style="margin:0;">PageSpeed — Performance (5 min)</h1>
-  <div class="meta"><b>Run:</b> 2026-06-15 18:25 CEST · <b>URLs:</b> 6 · <b>History points:</b> 30</div>
+  <div class="meta"><b>Run:</b> 2026-06-15 22:03 CEST · <b>URLs:</b> 6 · <b>History points:</b> 30</div>
   <p class="meta">Full daily report: <a href="full.html">full.html</a> · Live health: <a href="health.html">health dashboard</a></p>
 
   <div class="row">
@@ -51,17 +51,14 @@
                 
                 <div class="card">
                   <div class="k">PROD Webinar</div>
-                  <div class="small">https://www.kuehne-nagel.com/webinar/</div>
-                  <div class="v">Avg M 57 / Avg D 72</div>
-                  <div class="small">3-day average · 30 points</div>
-                  <div class="small">Error rate: 0% · 0/30 runs</div>
-                  <div class="small">Availability: 100% · HTTP 504: 0/30 · Last 504: —</div>
+                  <div class="err">Error</div>
+                  <div class="small">[mobile][https://www.kuehne-nagel.com/webinar/] PSI error 400: {&#39;error&#39;: {&#39;code&#39;: 400, &#39;message&#39;: &#39;Lighthouse returned error: FAILED_DOCUMENT_REQUEST. Lighthouse was unable to reliably load the page you requested. Make sure you are testing the correct URL and that the server is properly responding to all requests. (Details: net::ERR_TIMED_OUT)&#39;, &#39;errors&#39;: [{&#39;message&#39;: &#39;Lighthouse returned error: FAILED_DOCUMENT_REQUEST. Lighthouse was unable to reliably load the page you requested. Make sure you are testing the correct URL and that the server is properly responding to all requests. (Details: net::ERR_TIMED_OUT)&#39;, &#39;domain&#39;: &#39;lighthouse&#39;, &#39;reason&#39;: &#39;lighthouseUserError&#39;}]}}</div>
                 </div>
                 
                 <div class="card">
                   <div class="k">PROD Customs</div>
                   <div class="small">https://www.kuehne-nagel.com/services/customs-clearance</div>
-                  <div class="v">Avg M 61 / Avg D 76</div>
+                  <div class="v">Avg M 60 / Avg D 77</div>
                   <div class="small">3-day average · 30 points</div>
                   <div class="small">Error rate: 0% · 0/30 runs</div>
                   <div class="small">Availability: 97% · HTTP 504: 0/30 · Last 504: —</div>
@@ -70,7 +67,7 @@
                 <div class="card">
                   <div class="k">PROD Stories</div>
                   <div class="small">https://www.kuehne-nagel.com/stories</div>
-                  <div class="v">Avg M 57 / Avg D 73</div>
+                  <div class="v">Avg M 57 / Avg D 72</div>
                   <div class="small">3-day average · 30 points</div>
                   <div class="small">Error rate: 0% · 0/30 runs</div>
                   <div class="small">Availability: 100% · HTTP 504: 0/30 · Last 504: —</div>
@@ -79,7 +76,7 @@
                 <div class="card">
                   <div class="k">QA</div>
                   <div class="small">https://public.websites-qa.eu-central-1.kncloud.aws.int.kn/</div>
-                  <div class="v">Avg M 69 / Avg D 92</div>
+                  <div class="v">Avg M 69 / Avg D 93</div>
                   <div class="small">3-day average · 30 points</div>
                   <div class="small">Error rate: 0% · 0/30 runs</div>
                   <div class="small">Availability: 100% · HTTP 504: 0/30 · Last 504: —</div>
@@ -102,8 +99,8 @@
         <div class="env-chart">
           <h2>PROD</h2>
           <div class="legend">
-            <span class="leg"><span class="sw sw-m"></span> Mobile: <b>54</b></span>
-            <span class="leg"><span class="sw sw-d"></span> Desktop: <b>94</b></span>
+            <span class="leg"><span class="sw sw-m"></span> Mobile: <b>72</b></span>
+            <span class="leg"><span class="sw sw-d"></span> Desktop: <b>98</b></span>
           </div>
 
           <svg width="920" height="260" viewBox="0 0 920 260">
@@ -112,13 +109,13 @@
             <line x1="44" y1="18" x2="44" y2="204" class="svg-axis"/>
             <line x1="44" y1="204" x2="904" y2="204" class="svg-axis"/>
 
-            <path d="M 44.00,60.78 L 73.66,70.08 L 103.31,125.88 L 132.97,66.36 L 162.62,60.78 L 192.28,64.50 L 221.93,68.22 L 251.59,112.86 L 281.24,70.08 L 310.90,73.80 L 340.55,125.88 L 370.21,70.08 L 399.86,125.88 L 429.52,60.78 L 459.17,71.94 L 488.83,64.50 L 518.48,60.78 L 548.14,114.72 L 577.79,73.80 L 607.45,70.08 L 637.10,60.78 L 666.76,70.08 L 696.41,60.78 L 726.07,120.30 L 755.72,107.28 L 785.38,60.78 L 815.03,60.78 L 844.69,64.50 L 874.34,127.74 L 904.00,103.56" class="svg-line-m"/>
-            <path d="M 44.00,21.72 L 73.66,21.72 L 103.31,21.72 L 132.97,81.24 L 162.62,23.58 L 192.28,57.06 L 221.93,21.72 L 251.59,21.72 L 281.24,79.38 L 310.90,68.22 L 340.55,19.86 L 370.21,51.48 L 399.86,19.86 L 429.52,92.40 L 459.17,21.72 L 488.83,40.32 L 518.48,21.72 L 548.14,25.44 L 577.79,21.72 L 607.45,77.52 L 637.10,21.72 L 666.76,21.72 L 696.41,21.72 L 726.07,21.72 L 755.72,60.78 L 785.38,21.72 L 815.03,19.86 L 844.69,23.58 L 874.34,68.22 L 904.00,29.16" class="svg-line-d"/>
+            <path d="M 44.00,70.08 L 73.66,125.88 L 103.31,66.36 L 132.97,60.78 L 162.62,64.50 L 192.28,68.22 L 221.93,112.86 L 251.59,70.08 L 281.24,73.80 L 310.90,125.88 L 340.55,70.08 L 370.21,125.88 L 399.86,60.78 L 429.52,71.94 L 459.17,64.50 L 488.83,60.78 L 518.48,114.72 L 548.14,73.80 L 577.79,70.08 L 607.45,60.78 L 637.10,70.08 L 666.76,60.78 L 696.41,120.30 L 726.07,107.28 L 755.72,60.78 L 785.38,60.78 L 815.03,64.50 L 844.69,127.74 L 874.34,103.56 L 904.00,70.08" class="svg-line-m"/>
+            <path d="M 44.00,21.72 L 73.66,21.72 L 103.31,81.24 L 132.97,23.58 L 162.62,57.06 L 192.28,21.72 L 221.93,21.72 L 251.59,79.38 L 281.24,68.22 L 310.90,19.86 L 340.55,51.48 L 370.21,19.86 L 399.86,92.40 L 429.52,21.72 L 459.17,40.32 L 488.83,21.72 L 518.48,25.44 L 548.14,21.72 L 577.79,77.52 L 607.45,21.72 L 637.10,21.72 L 666.76,21.72 L 696.41,21.72 L 726.07,60.78 L 755.72,21.72 L 785.38,19.86 L 815.03,23.58 L 844.69,68.22 L 874.34,29.16 L 904.00,21.72" class="svg-line-d"/>
 
-            <circle cx='44.00' cy='60.78' r='2.6' class='svg-dot-m'/><circle cx='399.86' cy='125.88' r='2.6' class='svg-dot-m'/><circle cx='755.72' cy='107.28' r='2.6' class='svg-dot-m'/><circle cx='904.00' cy='103.56' r='2.6' class='svg-dot-m'/>
-            <circle cx='44.00' cy='21.72' r='2.6' class='svg-dot-d'/><circle cx='399.86' cy='19.86' r='2.6' class='svg-dot-d'/><circle cx='755.72' cy='60.78' r='2.6' class='svg-dot-d'/><circle cx='904.00' cy='29.16' r='2.6' class='svg-dot-d'/>
+            <circle cx='44.00' cy='70.08' r='2.6' class='svg-dot-m'/><circle cx='399.86' cy='60.78' r='2.6' class='svg-dot-m'/><circle cx='755.72' cy='60.78' r='2.6' class='svg-dot-m'/><circle cx='904.00' cy='70.08' r='2.6' class='svg-dot-m'/>
+            <circle cx='44.00' cy='21.72' r='2.6' class='svg-dot-d'/><circle cx='399.86' cy='92.40' r='2.6' class='svg-dot-d'/><circle cx='755.72' cy='21.72' r='2.6' class='svg-dot-d'/><circle cx='904.00' cy='21.72' r='2.6' class='svg-dot-d'/>
 
-            <text x='44.00' y='236' text-anchor='middle' class='svg-x'>06-12 18:09</text><text x='399.86' y='236' text-anchor='middle' class='svg-x'>06-13 20:23</text><text x='755.72' y='236' text-anchor='middle' class='svg-x'>06-14 21:24</text><text x='904.00' y='236' text-anchor='middle' class='svg-x'>06-15 16:25</text>
+            <text x='44.00' y='236' text-anchor='middle' class='svg-x'>06-12 20:27</text><text x='399.86' y='236' text-anchor='middle' class='svg-x'>06-13 21:46</text><text x='755.72' y='236' text-anchor='middle' class='svg-x'>06-14 22:42</text><text x='904.00' y='236' text-anchor='middle' class='svg-x'>06-15 20:03</text>
           </svg>
         </div>
         
@@ -135,21 +132,21 @@
             <line x1="44" y1="18" x2="44" y2="204" class="svg-axis"/>
             <line x1="44" y1="204" x2="904" y2="204" class="svg-axis"/>
 
-            <path d="M 44.00,81.24 L 73.66,94.26 L 103.31,75.66 L 132.97,88.68 L 162.62,81.24 L 192.28,79.38 L 221.93,109.14 L 251.59,114.72 L 281.24,96.12 L 310.90,92.40 L 340.55,88.68 L 370.21,97.98 L 399.86,97.98 L 429.52,107.28 L 459.17,97.98 L 488.83,94.26 L 518.48,81.24 L 548.14,97.98 L 577.79,90.54 L 607.45,120.30 L 637.10,111.00 L 666.76,101.70 L 696.41,120.30 L 726.07,94.26 L 755.72,112.86 L 785.38,105.42 L 815.03,92.40 L 844.69,109.14 L 874.34,94.26 L 904.00,103.56" class="svg-line-m"/>
-            <path d="M 44.00,60.78 L 73.66,64.50 L 103.31,60.78 L 132.97,60.78 L 162.62,58.92 L 192.28,53.34 L 221.93,45.90 L 251.59,47.76 L 281.24,70.08 L 310.90,86.82 L 340.55,49.62 L 370.21,47.76 L 399.86,57.06 L 429.52,62.64 L 459.17,96.12 L 488.83,68.22 L 518.48,103.56 L 548.14,45.90 L 577.79,68.22 L 607.45,96.12 L 637.10,79.38 L 666.76,57.06 L 696.41,70.08 L 726.07,62.64 L 755.72,44.04 L 785.38,92.40 L 815.03,122.16 L 844.69,103.56 L 874.34,79.38 L 904.00,73.80" class="svg-line-d"/>
+            <path d="M 44.00,94.26 L 73.66,75.66 L 103.31,88.68 L 132.97,81.24 L 162.62,79.38 L 192.28,109.14 L 221.93,114.72 L 251.59,96.12 L 281.24,92.40 L 310.90,88.68 L 340.55,97.98 L 370.21,97.98 L 399.86,107.28 L 429.52,97.98 L 459.17,94.26 L 488.83,81.24 L 518.48,97.98 L 548.14,90.54 L 577.79,120.30 L 607.45,111.00 L 637.10,101.70 L 666.76,120.30 L 696.41,94.26 L 726.07,112.86 L 755.72,105.42 L 785.38,92.40 L 815.03,109.14 L 844.69,94.26 L 874.34,103.56 L 904.00,103.56" class="svg-line-m"/>
+            <path d="M 44.00,64.50 L 73.66,60.78 L 103.31,60.78 L 132.97,58.92 L 162.62,53.34 L 192.28,45.90 L 221.93,47.76 L 251.59,70.08 L 281.24,86.82 L 310.90,49.62 L 340.55,47.76 L 370.21,57.06 L 399.86,62.64 L 429.52,96.12 L 459.17,68.22 L 488.83,103.56 L 518.48,45.90 L 548.14,68.22 L 577.79,96.12 L 607.45,79.38 L 637.10,57.06 L 666.76,70.08 L 696.41,62.64 L 726.07,44.04 L 755.72,92.40 L 785.38,122.16 L 815.03,103.56 L 844.69,79.38 L 874.34,73.80 L 904.00,73.80" class="svg-line-d"/>
 
-            <circle cx='44.00' cy='81.24' r='2.6' class='svg-dot-m'/><circle cx='399.86' cy='97.98' r='2.6' class='svg-dot-m'/><circle cx='755.72' cy='112.86' r='2.6' class='svg-dot-m'/><circle cx='904.00' cy='103.56' r='2.6' class='svg-dot-m'/>
-            <circle cx='44.00' cy='60.78' r='2.6' class='svg-dot-d'/><circle cx='399.86' cy='57.06' r='2.6' class='svg-dot-d'/><circle cx='755.72' cy='44.04' r='2.6' class='svg-dot-d'/><circle cx='904.00' cy='73.80' r='2.6' class='svg-dot-d'/>
+            <circle cx='44.00' cy='94.26' r='2.6' class='svg-dot-m'/><circle cx='399.86' cy='107.28' r='2.6' class='svg-dot-m'/><circle cx='755.72' cy='105.42' r='2.6' class='svg-dot-m'/><circle cx='904.00' cy='103.56' r='2.6' class='svg-dot-m'/>
+            <circle cx='44.00' cy='64.50' r='2.6' class='svg-dot-d'/><circle cx='399.86' cy='62.64' r='2.6' class='svg-dot-d'/><circle cx='755.72' cy='92.40' r='2.6' class='svg-dot-d'/><circle cx='904.00' cy='73.80' r='2.6' class='svg-dot-d'/>
 
-            <text x='44.00' y='236' text-anchor='middle' class='svg-x'>06-12 18:09</text><text x='399.86' y='236' text-anchor='middle' class='svg-x'>06-13 20:23</text><text x='755.72' y='236' text-anchor='middle' class='svg-x'>06-14 21:24</text><text x='904.00' y='236' text-anchor='middle' class='svg-x'>06-15 16:25</text>
+            <text x='44.00' y='236' text-anchor='middle' class='svg-x'>06-12 20:27</text><text x='399.86' y='236' text-anchor='middle' class='svg-x'>06-13 21:46</text><text x='755.72' y='236' text-anchor='middle' class='svg-x'>06-14 22:42</text><text x='904.00' y='236' text-anchor='middle' class='svg-x'>06-15 20:03</text>
           </svg>
         </div>
         
         <div class="env-chart">
           <h2>PROD Customs</h2>
           <div class="legend">
-            <span class="leg"><span class="sw sw-m"></span> Mobile: <b>54</b></span>
-            <span class="leg"><span class="sw sw-d"></span> Desktop: <b>66</b></span>
+            <span class="leg"><span class="sw sw-m"></span> Mobile: <b>53</b></span>
+            <span class="leg"><span class="sw sw-d"></span> Desktop: <b>87</b></span>
           </div>
 
           <svg width="920" height="260" viewBox="0 0 920 260">
@@ -158,21 +155,21 @@
             <line x1="44" y1="18" x2="44" y2="204" class="svg-axis"/>
             <line x1="44" y1="204" x2="904" y2="204" class="svg-axis"/>
 
-            <path d="M 44.00,79.38 L 73.66,86.82 L 103.31,83.10 L 132.97,90.54 L 162.62,88.68 L 192.28,96.12 L 221.93,79.38 L 251.59,92.40 L 281.24,83.10 L 310.90,84.96 L 340.55,84.96 L 370.21,81.24 L 399.86,84.96 L 429.52,94.26 L 459.17,96.12 L 488.83,92.40 L 518.48,118.44 L 548.14,71.94 L 577.79,88.68 L 607.45,105.42 L 637.10,112.86 L 666.76,86.82 L 696.41,107.28 L 726.07,79.38 L 755.72,101.70 L 785.38,83.10 L 815.03,90.54 L 844.69,94.26 L 874.34,83.10 L 904.00,103.56" class="svg-line-m"/>
-            <path d="M 44.00,81.24 L 73.66,75.66 L 103.31,32.88 L 132.97,77.52 L 162.62,29.16 L 192.28,70.08 L 221.93,70.08 L 251.59,29.16 L 281.24,58.92 L 310.90,62.64 L 340.55,75.66 L 370.21,55.20 L 399.86,47.76 L 429.52,88.68 L 459.17,42.18 L 488.83,75.66 L 518.48,68.22 L 548.14,31.02 L 577.79,49.62 L 607.45,77.52 L 637.10,70.08 L 666.76,32.88 L 696.41,77.52 L 726.07,38.46 L 755.72,34.74 L 785.38,86.82 L 815.03,70.08 L 844.69,77.52 L 874.34,88.68 L 904.00,81.24" class="svg-line-d"/>
+            <path d="M 44.00,86.82 L 73.66,83.10 L 103.31,90.54 L 132.97,88.68 L 162.62,96.12 L 192.28,79.38 L 221.93,92.40 L 251.59,83.10 L 281.24,84.96 L 310.90,84.96 L 340.55,81.24 L 370.21,84.96 L 399.86,94.26 L 429.52,96.12 L 459.17,92.40 L 488.83,118.44 L 518.48,71.94 L 548.14,88.68 L 577.79,105.42 L 607.45,112.86 L 637.10,86.82 L 666.76,107.28 L 696.41,79.38 L 726.07,101.70 L 755.72,83.10 L 785.38,90.54 L 815.03,94.26 L 844.69,83.10 L 874.34,103.56 L 904.00,105.42" class="svg-line-m"/>
+            <path d="M 44.00,75.66 L 73.66,32.88 L 103.31,77.52 L 132.97,29.16 L 162.62,70.08 L 192.28,70.08 L 221.93,29.16 L 251.59,58.92 L 281.24,62.64 L 310.90,75.66 L 340.55,55.20 L 370.21,47.76 L 399.86,88.68 L 429.52,42.18 L 459.17,75.66 L 488.83,68.22 L 518.48,31.02 L 548.14,49.62 L 577.79,77.52 L 607.45,70.08 L 637.10,32.88 L 666.76,77.52 L 696.41,38.46 L 726.07,34.74 L 755.72,86.82 L 785.38,70.08 L 815.03,77.52 L 844.69,88.68 L 874.34,81.24 L 904.00,42.18" class="svg-line-d"/>
 
-            <circle cx='44.00' cy='79.38' r='2.6' class='svg-dot-m'/><circle cx='399.86' cy='84.96' r='2.6' class='svg-dot-m'/><circle cx='755.72' cy='101.70' r='2.6' class='svg-dot-m'/><circle cx='904.00' cy='103.56' r='2.6' class='svg-dot-m'/>
-            <circle cx='44.00' cy='81.24' r='2.6' class='svg-dot-d'/><circle cx='399.86' cy='47.76' r='2.6' class='svg-dot-d'/><circle cx='755.72' cy='34.74' r='2.6' class='svg-dot-d'/><circle cx='904.00' cy='81.24' r='2.6' class='svg-dot-d'/>
+            <circle cx='44.00' cy='86.82' r='2.6' class='svg-dot-m'/><circle cx='399.86' cy='94.26' r='2.6' class='svg-dot-m'/><circle cx='755.72' cy='83.10' r='2.6' class='svg-dot-m'/><circle cx='904.00' cy='105.42' r='2.6' class='svg-dot-m'/>
+            <circle cx='44.00' cy='75.66' r='2.6' class='svg-dot-d'/><circle cx='399.86' cy='88.68' r='2.6' class='svg-dot-d'/><circle cx='755.72' cy='86.82' r='2.6' class='svg-dot-d'/><circle cx='904.00' cy='42.18' r='2.6' class='svg-dot-d'/>
 
-            <text x='44.00' y='236' text-anchor='middle' class='svg-x'>06-12 18:09</text><text x='399.86' y='236' text-anchor='middle' class='svg-x'>06-13 20:23</text><text x='755.72' y='236' text-anchor='middle' class='svg-x'>06-14 21:24</text><text x='904.00' y='236' text-anchor='middle' class='svg-x'>06-15 16:25</text>
+            <text x='44.00' y='236' text-anchor='middle' class='svg-x'>06-12 20:27</text><text x='399.86' y='236' text-anchor='middle' class='svg-x'>06-13 21:46</text><text x='755.72' y='236' text-anchor='middle' class='svg-x'>06-14 22:42</text><text x='904.00' y='236' text-anchor='middle' class='svg-x'>06-15 20:03</text>
           </svg>
         </div>
         
         <div class="env-chart">
           <h2>PROD Stories</h2>
           <div class="legend">
-            <span class="leg"><span class="sw sw-m"></span> Mobile: <b>56</b></span>
-            <span class="leg"><span class="sw sw-d"></span> Desktop: <b>68</b></span>
+            <span class="leg"><span class="sw sw-m"></span> Mobile: <b>55</b></span>
+            <span class="leg"><span class="sw sw-d"></span> Desktop: <b>60</b></span>
           </div>
 
           <svg width="920" height="260" viewBox="0 0 920 260">
@@ -181,21 +178,21 @@
             <line x1="44" y1="18" x2="44" y2="204" class="svg-axis"/>
             <line x1="44" y1="204" x2="904" y2="204" class="svg-axis"/>
 
-            <path d="M 44.00,90.54 L 73.66,96.12 L 103.31,88.68 L 132.97,75.66 L 162.62,109.14 L 192.28,92.40 L 221.93,90.54 L 251.59,86.82 L 281.24,92.40 L 310.90,109.14 L 340.55,112.86 L 370.21,105.42 L 399.86,96.12 L 429.52,105.42 L 459.17,99.84 L 488.83,86.82 L 518.48,99.84 L 548.14,88.68 L 577.79,97.98 L 607.45,75.66 L 637.10,90.54 L 666.76,112.86 L 696.41,114.72 L 726.07,92.40 L 755.72,84.96 L 785.38,90.54 L 815.03,112.86 L 844.69,88.68 L 874.34,127.74 L 904.00,99.84" class="svg-line-m"/>
-            <path d="M 44.00,49.62 L 73.66,84.96 L 103.31,62.64 L 132.97,83.10 L 162.62,81.24 L 192.28,83.10 L 221.93,75.66 L 251.59,55.20 L 281.24,62.64 L 310.90,45.90 L 340.55,60.78 L 370.21,73.80 L 399.86,66.36 L 429.52,64.50 L 459.17,81.24 L 488.83,57.06 L 518.48,57.06 L 548.14,62.64 L 577.79,53.34 L 607.45,84.96 L 637.10,58.92 L 666.76,83.10 L 696.41,83.10 L 726.07,51.48 L 755.72,45.90 L 785.38,71.94 L 815.03,79.38 L 844.69,79.38 L 874.34,55.20 L 904.00,77.52" class="svg-line-d"/>
+            <path d="M 44.00,96.12 L 73.66,88.68 L 103.31,75.66 L 132.97,109.14 L 162.62,92.40 L 192.28,90.54 L 221.93,86.82 L 251.59,92.40 L 281.24,109.14 L 310.90,112.86 L 340.55,105.42 L 370.21,96.12 L 399.86,105.42 L 429.52,99.84 L 459.17,86.82 L 488.83,99.84 L 518.48,88.68 L 548.14,97.98 L 577.79,75.66 L 607.45,90.54 L 637.10,112.86 L 666.76,114.72 L 696.41,92.40 L 726.07,84.96 L 755.72,90.54 L 785.38,112.86 L 815.03,88.68 L 844.69,127.74 L 874.34,99.84 L 904.00,101.70" class="svg-line-m"/>
+            <path d="M 44.00,84.96 L 73.66,62.64 L 103.31,83.10 L 132.97,81.24 L 162.62,83.10 L 192.28,75.66 L 221.93,55.20 L 251.59,62.64 L 281.24,45.90 L 310.90,60.78 L 340.55,73.80 L 370.21,66.36 L 399.86,64.50 L 429.52,81.24 L 459.17,57.06 L 488.83,57.06 L 518.48,62.64 L 548.14,53.34 L 577.79,84.96 L 607.45,58.92 L 637.10,83.10 L 666.76,83.10 L 696.41,51.48 L 726.07,45.90 L 755.72,71.94 L 785.38,79.38 L 815.03,79.38 L 844.69,55.20 L 874.34,77.52 L 904.00,92.40" class="svg-line-d"/>
 
-            <circle cx='44.00' cy='90.54' r='2.6' class='svg-dot-m'/><circle cx='399.86' cy='96.12' r='2.6' class='svg-dot-m'/><circle cx='755.72' cy='84.96' r='2.6' class='svg-dot-m'/><circle cx='904.00' cy='99.84' r='2.6' class='svg-dot-m'/>
-            <circle cx='44.00' cy='49.62' r='2.6' class='svg-dot-d'/><circle cx='399.86' cy='66.36' r='2.6' class='svg-dot-d'/><circle cx='755.72' cy='45.90' r='2.6' class='svg-dot-d'/><circle cx='904.00' cy='77.52' r='2.6' class='svg-dot-d'/>
+            <circle cx='44.00' cy='96.12' r='2.6' class='svg-dot-m'/><circle cx='399.86' cy='105.42' r='2.6' class='svg-dot-m'/><circle cx='755.72' cy='90.54' r='2.6' class='svg-dot-m'/><circle cx='904.00' cy='101.70' r='2.6' class='svg-dot-m'/>
+            <circle cx='44.00' cy='84.96' r='2.6' class='svg-dot-d'/><circle cx='399.86' cy='64.50' r='2.6' class='svg-dot-d'/><circle cx='755.72' cy='71.94' r='2.6' class='svg-dot-d'/><circle cx='904.00' cy='92.40' r='2.6' class='svg-dot-d'/>
 
-            <text x='44.00' y='236' text-anchor='middle' class='svg-x'>06-12 18:09</text><text x='399.86' y='236' text-anchor='middle' class='svg-x'>06-13 20:23</text><text x='755.72' y='236' text-anchor='middle' class='svg-x'>06-14 21:24</text><text x='904.00' y='236' text-anchor='middle' class='svg-x'>06-15 16:25</text>
+            <text x='44.00' y='236' text-anchor='middle' class='svg-x'>06-12 20:27</text><text x='399.86' y='236' text-anchor='middle' class='svg-x'>06-13 21:46</text><text x='755.72' y='236' text-anchor='middle' class='svg-x'>06-14 22:42</text><text x='904.00' y='236' text-anchor='middle' class='svg-x'>06-15 20:03</text>
           </svg>
         </div>
         
         <div class="env-chart">
           <h2>QA</h2>
           <div class="legend">
-            <span class="leg"><span class="sw sw-m"></span> Mobile: <b>49</b></span>
-            <span class="leg"><span class="sw sw-d"></span> Desktop: <b>95</b></span>
+            <span class="leg"><span class="sw sw-m"></span> Mobile: <b>73</b></span>
+            <span class="leg"><span class="sw sw-d"></span> Desktop: <b>98</b></span>
           </div>
 
           <svg width="920" height="260" viewBox="0 0 920 260">
@@ -204,21 +201,21 @@
             <line x1="44" y1="18" x2="44" y2="204" class="svg-axis"/>
             <line x1="44" y1="204" x2="904" y2="204" class="svg-axis"/>
 
-            <path d="M 44.00,71.94 L 73.66,68.22 L 103.31,68.22 L 132.97,114.72 L 162.62,124.02 L 192.28,73.80 L 221.93,68.22 L 251.59,64.50 L 281.24,81.24 L 310.90,71.94 L 340.55,68.22 L 370.21,64.50 L 399.86,90.54 L 429.52,97.98 L 459.17,66.36 L 488.83,66.36 L 518.48,68.22 L 548.14,68.22 L 577.79,68.22 L 607.45,66.36 L 637.10,64.50 L 666.76,81.24 L 696.41,60.78 L 726.07,68.22 L 755.72,68.22 L 785.38,66.36 L 815.03,66.36 L 844.69,68.22 L 874.34,81.24 L 904.00,112.86" class="svg-line-m"/>
-            <path d="M 44.00,68.22 L 73.66,79.38 L 103.31,34.74 L 132.97,21.72 L 162.62,31.02 L 192.28,27.30 L 221.93,23.58 L 251.59,25.44 L 281.24,25.44 L 310.90,34.74 L 340.55,23.58 L 370.21,21.72 L 399.86,23.58 L 429.52,21.72 L 459.17,23.58 L 488.83,31.02 L 518.48,31.02 L 548.14,32.88 L 577.79,36.60 L 607.45,21.72 L 637.10,64.50 L 666.76,25.44 L 696.41,29.16 L 726.07,21.72 L 755.72,31.02 L 785.38,45.90 L 815.03,25.44 L 844.69,23.58 L 874.34,32.88 L 904.00,27.30" class="svg-line-d"/>
+            <path d="M 44.00,68.22 L 73.66,68.22 L 103.31,114.72 L 132.97,124.02 L 162.62,73.80 L 192.28,68.22 L 221.93,64.50 L 251.59,81.24 L 281.24,71.94 L 310.90,68.22 L 340.55,64.50 L 370.21,90.54 L 399.86,97.98 L 429.52,66.36 L 459.17,66.36 L 488.83,68.22 L 518.48,68.22 L 548.14,68.22 L 577.79,66.36 L 607.45,64.50 L 637.10,81.24 L 666.76,60.78 L 696.41,68.22 L 726.07,68.22 L 755.72,66.36 L 785.38,66.36 L 815.03,68.22 L 844.69,81.24 L 874.34,112.86 L 904.00,68.22" class="svg-line-m"/>
+            <path d="M 44.00,79.38 L 73.66,34.74 L 103.31,21.72 L 132.97,31.02 L 162.62,27.30 L 192.28,23.58 L 221.93,25.44 L 251.59,25.44 L 281.24,34.74 L 310.90,23.58 L 340.55,21.72 L 370.21,23.58 L 399.86,21.72 L 429.52,23.58 L 459.17,31.02 L 488.83,31.02 L 518.48,32.88 L 548.14,36.60 L 577.79,21.72 L 607.45,64.50 L 637.10,25.44 L 666.76,29.16 L 696.41,21.72 L 726.07,31.02 L 755.72,45.90 L 785.38,25.44 L 815.03,23.58 L 844.69,32.88 L 874.34,27.30 L 904.00,21.72" class="svg-line-d"/>
 
-            <circle cx='44.00' cy='71.94' r='2.6' class='svg-dot-m'/><circle cx='399.86' cy='90.54' r='2.6' class='svg-dot-m'/><circle cx='755.72' cy='68.22' r='2.6' class='svg-dot-m'/><circle cx='904.00' cy='112.86' r='2.6' class='svg-dot-m'/>
-            <circle cx='44.00' cy='68.22' r='2.6' class='svg-dot-d'/><circle cx='399.86' cy='23.58' r='2.6' class='svg-dot-d'/><circle cx='755.72' cy='31.02' r='2.6' class='svg-dot-d'/><circle cx='904.00' cy='27.30' r='2.6' class='svg-dot-d'/>
+            <circle cx='44.00' cy='68.22' r='2.6' class='svg-dot-m'/><circle cx='399.86' cy='97.98' r='2.6' class='svg-dot-m'/><circle cx='755.72' cy='66.36' r='2.6' class='svg-dot-m'/><circle cx='904.00' cy='68.22' r='2.6' class='svg-dot-m'/>
+            <circle cx='44.00' cy='79.38' r='2.6' class='svg-dot-d'/><circle cx='399.86' cy='21.72' r='2.6' class='svg-dot-d'/><circle cx='755.72' cy='45.90' r='2.6' class='svg-dot-d'/><circle cx='904.00' cy='21.72' r='2.6' class='svg-dot-d'/>
 
-            <text x='44.00' y='236' text-anchor='middle' class='svg-x'>06-12 18:09</text><text x='399.86' y='236' text-anchor='middle' class='svg-x'>06-13 20:23</text><text x='755.72' y='236' text-anchor='middle' class='svg-x'>06-14 21:24</text><text x='904.00' y='236' text-anchor='middle' class='svg-x'>06-15 16:25</text>
+            <text x='44.00' y='236' text-anchor='middle' class='svg-x'>06-12 20:27</text><text x='399.86' y='236' text-anchor='middle' class='svg-x'>06-13 21:46</text><text x='755.72' y='236' text-anchor='middle' class='svg-x'>06-14 22:42</text><text x='904.00' y='236' text-anchor='middle' class='svg-x'>06-15 20:03</text>
           </svg>
         </div>
         
         <div class="env-chart">
           <h2>DEV</h2>
           <div class="legend">
-            <span class="leg"><span class="sw sw-m"></span> Mobile: <b>69</b></span>
-            <span class="leg"><span class="sw sw-d"></span> Desktop: <b>95</b></span>
+            <span class="leg"><span class="sw sw-m"></span> Mobile: <b>57</b></span>
+            <span class="leg"><span class="sw sw-d"></span> Desktop: <b>91</b></span>
           </div>
 
           <svg width="920" height="260" viewBox="0 0 920 260">
@@ -227,13 +224,13 @@
             <line x1="44" y1="18" x2="44" y2="204" class="svg-axis"/>
             <line x1="44" y1="204" x2="904" y2="204" class="svg-axis"/>
 
-            <path d="M 44.00,66.36 L 73.66,81.24 L 103.31,73.80 L 132.97,84.96 L 162.62,66.36 L 192.28,68.22 L 221.93,84.96 L 251.59,71.94 L 281.24,73.80 L 310.90,84.96 L 340.55,79.38 L 370.21,73.80 L 399.86,66.36 L 429.52,70.08 L 459.17,70.08 L 488.83,71.94 L 518.48,75.66 L 548.14,77.52 L 577.79,66.36 L 607.45,75.66 L 637.10,83.10 L 666.76,64.50 L 696.41,77.52 L 726.07,68.22 L 755.72,62.64 L 785.38,73.80 L 815.03,66.36 L 844.69,73.80 L 874.34,79.38 L 904.00,75.66" class="svg-line-m"/>
-            <path d="M 44.00,21.72 L 73.66,31.02 L 103.31,27.30 L 132.97,25.44 L 162.62,29.16 L 192.28,23.58 L 221.93,31.02 L 251.59,32.88 L 281.24,27.30 L 310.90,34.74 L 340.55,25.44 L 370.21,40.32 L 399.86,42.18 L 429.52,27.30 L 459.17,90.54 L 488.83,27.30 L 518.48,25.44 L 548.14,23.58 L 577.79,36.60 L 607.45,45.90 L 637.10,31.02 L 666.76,47.76 L 696.41,32.88 L 726.07,31.02 L 755.72,32.88 L 785.38,25.44 L 815.03,25.44 L 844.69,27.30 L 874.34,29.16 L 904.00,27.30" class="svg-line-d"/>
+            <path d="M 44.00,81.24 L 73.66,73.80 L 103.31,84.96 L 132.97,66.36 L 162.62,68.22 L 192.28,84.96 L 221.93,71.94 L 251.59,73.80 L 281.24,84.96 L 310.90,79.38 L 340.55,73.80 L 370.21,66.36 L 399.86,70.08 L 429.52,70.08 L 459.17,71.94 L 488.83,75.66 L 518.48,77.52 L 548.14,66.36 L 577.79,75.66 L 607.45,83.10 L 637.10,64.50 L 666.76,77.52 L 696.41,68.22 L 726.07,62.64 L 755.72,73.80 L 785.38,66.36 L 815.03,73.80 L 844.69,79.38 L 874.34,75.66 L 904.00,97.98" class="svg-line-m"/>
+            <path d="M 44.00,31.02 L 73.66,27.30 L 103.31,25.44 L 132.97,29.16 L 162.62,23.58 L 192.28,31.02 L 221.93,32.88 L 251.59,27.30 L 281.24,34.74 L 310.90,25.44 L 340.55,40.32 L 370.21,42.18 L 399.86,27.30 L 429.52,90.54 L 459.17,27.30 L 488.83,25.44 L 518.48,23.58 L 548.14,36.60 L 577.79,45.90 L 607.45,31.02 L 637.10,47.76 L 666.76,32.88 L 696.41,31.02 L 726.07,32.88 L 755.72,25.44 L 785.38,25.44 L 815.03,27.30 L 844.69,29.16 L 874.34,27.30 L 904.00,34.74" class="svg-line-d"/>
 
-            <circle cx='44.00' cy='66.36' r='2.6' class='svg-dot-m'/><circle cx='399.86' cy='66.36' r='2.6' class='svg-dot-m'/><circle cx='755.72' cy='62.64' r='2.6' class='svg-dot-m'/><circle cx='904.00' cy='75.66' r='2.6' class='svg-dot-m'/>
-            <circle cx='44.00' cy='21.72' r='2.6' class='svg-dot-d'/><circle cx='399.86' cy='42.18' r='2.6' class='svg-dot-d'/><circle cx='755.72' cy='32.88' r='2.6' class='svg-dot-d'/><circle cx='904.00' cy='27.30' r='2.6' class='svg-dot-d'/>
+            <circle cx='44.00' cy='81.24' r='2.6' class='svg-dot-m'/><circle cx='399.86' cy='70.08' r='2.6' class='svg-dot-m'/><circle cx='755.72' cy='73.80' r='2.6' class='svg-dot-m'/><circle cx='904.00' cy='97.98' r='2.6' class='svg-dot-m'/>
+            <circle cx='44.00' cy='31.02' r='2.6' class='svg-dot-d'/><circle cx='399.86' cy='27.30' r='2.6' class='svg-dot-d'/><circle cx='755.72' cy='25.44' r='2.6' class='svg-dot-d'/><circle cx='904.00' cy='34.74' r='2.6' class='svg-dot-d'/>
 
-            <text x='44.00' y='236' text-anchor='middle' class='svg-x'>06-12 18:09</text><text x='399.86' y='236' text-anchor='middle' class='svg-x'>06-13 20:23</text><text x='755.72' y='236' text-anchor='middle' class='svg-x'>06-14 21:24</text><text x='904.00' y='236' text-anchor='middle' class='svg-x'>06-15 16:25</text>
+            <text x='44.00' y='236' text-anchor='middle' class='svg-x'>06-12 20:27</text><text x='399.86' y='236' text-anchor='middle' class='svg-x'>06-13 21:46</text><text x='755.72' y='236' text-anchor='middle' class='svg-x'>06-14 22:42</text><text x='904.00' y='236' text-anchor='middle' class='svg-x'>06-15 20:03</text>
           </svg>
         </div>
         
